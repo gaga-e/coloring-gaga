@@ -1,0 +1,207 @@
+export interface DrawingSheet {
+  id: string;
+  title: string;
+  category: "Cozy & Whimsical" | "Botanical & Nature" | "Manga & Anime" | "Mythical Creatures" | "Geometric Mandalas";
+  description: string;
+  difficulty: "Easy" | "Medium" | "Intricate";
+  estimatedMinutes: number;
+  imageUrl: string;
+}
+
+export const DRAWING_SHEETS: DrawingSheet[] = [
+  // --- Simple & Easy Beginners / Kids ---
+  {
+    id: "kawaii-donut",
+    title: "Sweet Smiling Glazed Donut",
+    category: "Cozy & Whimsical",
+    description: "An adorable smiling donut with melting frosting glaze, colorful sprinkles, and rosy cheeks. Bold, simple lines that are easy to shade.",
+    difficulty: "Easy",
+    estimatedMinutes: 3,
+    imageUrl: "/drawings/kawaii-donut.png",
+  },
+  {
+    id: "baby-duckling",
+    title: "Baby Duckling in Eggshell Hat",
+    category: "Cozy & Whimsical",
+    description: "A cute little duckling wearing a cracked eggshell on its head, happily splashing in a gentle puddle with water ripples.",
+    difficulty: "Easy",
+    estimatedMinutes: 3,
+    imageUrl: "/drawings/baby-duckling.png",
+  },
+  {
+    id: "kawaii-boba",
+    title: "Happy Kawaii Boba Tea",
+    category: "Cozy & Whimsical",
+    description: "A super cute smiling boba milk tea cup with round tapioca pearls, striped straw, and sparkle hearts. Bold, simple lines that are easy to shade.",
+    difficulty: "Easy",
+    estimatedMinutes: 3,
+    imageUrl: "/drawings/kawaii-boba.png",
+  },
+  {
+    id: "playful-puppy",
+    title: "Playful Bandana Puppy",
+    category: "Cozy & Whimsical",
+    description: "An adorable happy puppy sitting with a tennis ball between its paws and a bandana around its neck. Big, clear shapes great for crayons.",
+    difficulty: "Easy",
+    estimatedMinutes: 4,
+    imageUrl: "/drawings/playful-puppy.png",
+  },
+  {
+    id: "space-rocket",
+    title: "Cosmic Rocket & Moon",
+    category: "Cozy & Whimsical",
+    description: "A friendly cartoon retro rocket zooming past a smiling crescent moon, puffy clouds, and chunky stars.",
+    difficulty: "Easy",
+    estimatedMinutes: 4,
+    imageUrl: "/drawings/space-rocket.png",
+  },
+  {
+    id: "cozy-sloth",
+    title: "Sleepy Sloth in Jungle Hammock",
+    category: "Cozy & Whimsical",
+    description: "An adorable sleepy sloth in a striped nightcap relaxing in a rope hammock tied between lush monstera leaves, sipping juice with a toucan friend.",
+    difficulty: "Easy",
+    estimatedMinutes: 5,
+    imageUrl: "/drawings/cozy-sloth.png",
+  },
+  {
+    id: "capybara-onsen",
+    title: "Serene Capybara in Onsen Bath",
+    category: "Cozy & Whimsical",
+    description: "A peaceful capybara relaxing in a traditional Japanese wooden hot spring bath with a yuzu orange, steam curls, and bamboo.",
+    difficulty: "Easy",
+    estimatedMinutes: 5,
+    imageUrl: "/drawings/capybara-onsen.png",
+  },
+  {
+    id: "baby-triceratops",
+    title: "Baby Dino with Flower Crown",
+    category: "Mythical Creatures",
+    description: "A delightful baby triceratops wearing a delicate daisy crown, seated in prehistoric ferns with gentle fluttering butterflies.",
+    difficulty: "Easy",
+    estimatedMinutes: 5,
+    imageUrl: "/drawings/baby-triceratops.png",
+  },
+  {
+    id: "sleeping-fox",
+    title: "Sleeping Autumn Baby Fox",
+    category: "Botanical & Nature",
+    description: "An adorable baby red fox curled up asleep beneath giant autumn oak leaves, woodland acorns, and sweet forest berries.",
+    difficulty: "Easy",
+    estimatedMinutes: 5,
+    imageUrl: "/drawings/sleeping-fox.png",
+  },
+
+  // --- Medium Detail ---
+  {
+    id: "monarch-butterfly",
+    title: "Monarch Butterfly & Meadow Blooms",
+    category: "Botanical & Nature",
+    description: "A stunning monarch butterfly with bold stained-glass wing patterns resting gently upon blooming meadow wildflowers and sunlit leaves.",
+    difficulty: "Medium",
+    estimatedMinutes: 6,
+    imageUrl: "/drawings/monarch-butterfly.png",
+  },
+  {
+    id: "baby-dragon",
+    title: "Hatching Baby Crystal Dragon",
+    category: "Mythical Creatures",
+    description: "A curious baby dragon peeking out from a cracked crystal geode egg with soft bat wings, horns, and friendly bright eyes.",
+    difficulty: "Medium",
+    estimatedMinutes: 6,
+    imageUrl: "/drawings/baby-dragon.png",
+  },
+  {
+    id: "astronaut-corgi",
+    title: "Cosmic Space Corgi Explorer",
+    category: "Cozy & Whimsical",
+    description: "A playful astronaut corgi floating weightlessly in outer space with a bubble helmet, smiling planets, and twinkling stars.",
+    difficulty: "Medium",
+    estimatedMinutes: 6,
+    imageUrl: "/drawings/astronaut-corgi.png",
+  },
+  {
+    id: "koi-pond",
+    title: "Graceful Japanese Koi Pond",
+    category: "Botanical & Nature",
+    description: "A graceful koi fish gliding through clear pond waters surrounded by blooming lotus petals, lily pads, and smooth river pebbles.",
+    difficulty: "Medium",
+    estimatedMinutes: 6,
+    imageUrl: "/drawings/koi-pond.png",
+  },
+  {
+    id: "sea-turtle",
+    title: "Sea Turtle & Coral Reef",
+    category: "Botanical & Nature",
+    description: "A gentle sea turtle gliding over a colorful coral reef with clownfish, sea anemones, starfish, and rising bubbles.",
+    difficulty: "Medium",
+    estimatedMinutes: 7,
+    imageUrl: "/drawings/sea-turtle.png",
+  },
+  {
+    id: "anime-sakura",
+    title: "Sakura Garden Bridge",
+    category: "Manga & Anime",
+    description: "A charming anime girl in a floral kimono with a wagasa paper umbrella standing on an arched wooden bridge over a stream of sakura petals.",
+    difficulty: "Medium",
+    estimatedMinutes: 7,
+    imageUrl: "/drawings/anime-sakura.png",
+  },
+
+  // --- Intricate & Advanced ---
+  {
+    id: "fairytale-treehouse",
+    title: "Enchanted Fairytale Treehouse",
+    category: "Cozy & Whimsical",
+    description: "A whimsical cottage treehouse nestled in a grand ancient oak with a winding spiral staircase, hanging lanterns, and wild forest mushrooms.",
+    difficulty: "Intricate",
+    estimatedMinutes: 8,
+    imageUrl: "/drawings/fairytale-treehouse.png",
+  },
+  {
+    id: "cozy-bakery",
+    title: "Country Cottage Bakery Kitchen",
+    category: "Cozy & Whimsical",
+    description: "A warm rustic bakery table with lattice-topped berry pies, swirled frosted cupcakes, ceramic flour canisters, and window herbs.",
+    difficulty: "Intricate",
+    estimatedMinutes: 8,
+    imageUrl: "/drawings/cozy-bakery.png",
+  },
+  {
+    id: "majestic-phoenix",
+    title: "Majestic Soaring Phoenix",
+    category: "Mythical Creatures",
+    description: "A magnificent mythical phoenix bird with grand flowing tail feathers soaring upwards amid flame motifs and celestial stars.",
+    difficulty: "Intricate",
+    estimatedMinutes: 9,
+    imageUrl: "/drawings/majestic-phoenix.png",
+  },
+  {
+    id: "sacred-mandala",
+    title: "Sacred Lotus Geometry",
+    category: "Geometric Mandalas",
+    description: "A deeply meditative, perfectly symmetrical mandala with cascading lotus layers, paisley curves, and delicate star flourishes.",
+    difficulty: "Intricate",
+    estimatedMinutes: 10,
+    imageUrl: "/drawings/sacred-mandala.png",
+  },
+  {
+    id: "celestial-mandala",
+    title: "Celestial Sun & Moon Mandala",
+    category: "Geometric Mandalas",
+    description: "An intricate celestial mandala intertwining a serene smiling crescent moon with a radiant sun, baroque flourishes, and star rings.",
+    difficulty: "Intricate",
+    estimatedMinutes: 10,
+    imageUrl: "/drawings/celestial-mandala.png",
+  },
+];
+
+export const ART_CATEGORIES = [
+  "All Styles",
+  "Simple & Easy",
+  "Cozy & Whimsical",
+  "Botanical & Nature",
+  "Manga & Anime",
+  "Mythical Creatures",
+  "Geometric Mandalas",
+] as const;
