@@ -4,10 +4,10 @@ import React, { useEffect, useState, useRef, use } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { RoomState, Player } from "@/lib/rooms";
 import { DRAWING_SHEETS } from "@/data/drawings";
-import { TactileCanvas, StrokeEvent } from "@/components/canvas/TactileCanvas";
+import { TactileCanvas, TactileCanvasHandle, StrokeEvent } from "@/components/canvas/TactileCanvas";
 import { PartyLobby } from "@/components/party/PartyLobby";
 import { GrandReveal } from "@/components/party/GrandReveal";
-import { Clock, CheckCircle2, AlertCircle, ArrowLeft, Send } from "@/components/ui/icons";
+import { Clock, CheckCircle2, AlertCircle, ArrowLeft, Send, Sparkles } from "@/components/ui/icons";
 
 export default function PartyRoomPage() {
   const params = useParams();
@@ -28,6 +28,7 @@ export default function PartyRoomPage() {
   // In-game timer
   const [timeLeft, setTimeLeft] = useState<number>(180);
   const canvasExportRef = useRef<string>("");
+  const tactileCanvasRef = useRef<TactileCanvasHandle>(null);
 
   // Avatars selection
   const AVATARS = ["🎨", "✨", "🐱", "🦊", "🌸", "⭐", "🚀", "🐸", "🌻", "☕"];
@@ -76,9 +77,10 @@ export default function PartyRoomPage() {
       if (!room || room.status === "lobby") return 2200;
       if (room.status === "reveal") return 2200;
       if (room.status === "playing") {
-        return room.mode === "together" ? 900 : 2000;
+        if (currentPlayer?.hasFinished) return 800; // Ultra-responsive fast poll after submission
+        return room.mode === "together" ? 900 : 1800;
       }
-      return 2000;
+      return 1800;
     };
 
     let timerId: NodeJS.Timeout;
@@ -181,8 +183,25 @@ export default function PartyRoomPage() {
     }
   };
 
-  const handleFinishClick = () => {
-    sendRoomAction("submitCanvas", { canvasDataUrl: canvasExportRef.current });
+  const handleFinishClick = async () => {
+    // 1. Synchronously obtain fresh, guaranteed high-quality canvas export
+    let exportUrl = tactileCanvasRef.current?.exportCanvas();
+    if (!exportUrl || exportUrl.length < 50) {
+      exportUrl = canvasExportRef.current;
+    }
+    if (!exportUrl || exportUrl.length < 50) {
+      if (typeof window !== "undefined") {
+        exportUrl = sessionStorage.getItem(`coloring_draft_${currentSheet.id}`) || "";
+      }
+    }
+
+    // 2. Optimistic UI update so player immediately sees completed state
+    setCurrentPlayer((prev) =>
+      prev ? { ...prev, hasFinished: true, canvasDataUrl: exportUrl } : null
+    );
+
+    // 3. Send to server
+    await sendRoomAction("submitCanvas", { canvasDataUrl: exportUrl });
   };
 
   const currentSheet =
@@ -391,12 +410,25 @@ export default function PartyRoomPage() {
               </>
             )}
           </button>
+
+          {/* Host Reveal Now Button (No waiting required) */}
+          {currentPlayer.hasFinished && currentPlayer.isHost && (
+            <button
+              onClick={() => sendRoomAction("reveal")}
+              className="flex items-center gap-1 sm:gap-1.5 px-3 py-1.5 rounded-xl text-xs font-extrabold bg-gradient-to-r from-amber-500 to-rose-500 hover:from-amber-600 hover:to-rose-600 text-white shadow-md shadow-amber-200 transition active:scale-95 whitespace-nowrap animate-pulse"
+              title="Skip remaining timer and show Grand Reveal now"
+            >
+              <Sparkles className="w-3.5 h-3.5" />
+              <span>Reveal Now ✨</span>
+            </button>
+          )}
         </div>
       </div>
 
       {/* Main Shading Canvas */}
       <div className="flex-1 relative overflow-hidden">
         <TactileCanvas
+          ref={tactileCanvasRef}
           sheet={currentSheet}
           onStrokeRecorded={(stroke) => {
             if (room.mode === "together") {

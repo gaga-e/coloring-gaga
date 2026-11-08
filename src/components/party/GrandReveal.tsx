@@ -27,6 +27,19 @@ export function GrandReveal({
   const [floatingEmojis, setFloatingEmojis] = useState<
     Array<{ id: number; emoji: string; x: number }>
   >([]);
+  const [localDraft, setLocalDraft] = useState<string>("");
+
+  // Recover local canvas draft if network transmission dropped it
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const draft = sessionStorage.getItem(`coloring_draft_${sheet.id}`);
+        if (draft) setLocalDraft(draft);
+      } catch {
+        // Ignored
+      }
+    }
+  }, [sheet.id]);
 
   // Trigger celebration confetti on mount
   useEffect(() => {
@@ -124,6 +137,9 @@ export function GrandReveal({
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
           {sortedPlayers.map((player, index) => {
             const isWinner = index === 0 && player.votes > 0;
+            const artworkUrl =
+              player.canvasDataUrl || (player.id === currentPlayer.id ? localDraft : "");
+
             return (
               <div
                 key={player.id}
@@ -131,8 +147,8 @@ export function GrandReveal({
                   isWinner ? "border-amber-400 ring-2 ring-amber-400/30" : "border-stone-200"
                 }`}
               >
-                {/* Player Info Header */}
                 <div>
+                  {/* Player Info Header */}
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-2.5">
                       <span className="text-2xl">{player.avatar}</span>
@@ -159,16 +175,17 @@ export function GrandReveal({
 
                   {/* Artwork Showcase Display */}
                   <div className="relative aspect-square w-full rounded-2xl bg-[#FAF8F5] border border-stone-200 overflow-hidden shadow-inner flex items-center justify-center p-2 mb-4">
-                    {player.canvasDataUrl ? (
+                    {artworkUrl ? (
                       <img
-                        src={player.canvasDataUrl}
+                        src={artworkUrl}
                         alt={`${player.name}'s coloring`}
                         className="w-full h-full object-contain rounded-xl"
                       />
                     ) : (
                       <div className="text-center p-4">
-                        <span className="text-3xl mb-1 block">🎨</span>
-                        <p className="text-xs text-stone-400">Still shading...</p>
+                        <span className="text-3xl mb-1 block">⏳</span>
+                        <p className="text-xs font-semibold text-stone-500">Time ran out</p>
+                        <span className="text-[10px] text-stone-400">Didn&apos;t submit in time</span>
                       </div>
                     )}
                   </div>
@@ -205,9 +222,9 @@ export function GrandReveal({
                     </span>
                   </button>
 
-                  {player.canvasDataUrl && (
+                  {artworkUrl && (
                     <button
-                      onClick={() => handleDownload(player.canvasDataUrl, player.name)}
+                      onClick={() => handleDownload(artworkUrl, player.name)}
                       className="p-2 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 transition active:scale-95"
                       title="Download PNG"
                     >

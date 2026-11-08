@@ -89,11 +89,24 @@ export async function POST(
         player.canvasDataUrl = canvasDataUrl;
         player.hasFinished = true;
 
-        // If everyone finished, advance to reveal
-        const allDone = Object.values(room.players).every((p) => p.hasFinished);
-        if (allDone) {
+        const playersList = Object.values(room.players);
+        const allDone = playersList.every((p) => p.hasFinished);
+        const now = Date.now();
+        // Check active players (within 45s) so idle/disconnected players don't block the round
+        const activePlayers = playersList.filter((p) => now - p.lastActive <= 45000);
+        const allActiveDone = activePlayers.length > 0 && activePlayers.every((p) => p.hasFinished);
+
+        if (allDone || allActiveDone) {
           room.status = "reveal";
         }
+        break;
+      }
+      case "reveal": {
+        // Host can immediately advance room to Grand Reveal
+        if (!player.isHost) {
+          return NextResponse.json({ error: "Only host can advance to reveal" }, { status: 403 });
+        }
+        room.status = "reveal";
         break;
       }
       case "stroke": {

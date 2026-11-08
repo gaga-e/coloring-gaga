@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useRef, useEffect, useState, useCallback } from "react";
+import React, { useRef, useEffect, useState, useCallback, useImperativeHandle, forwardRef } from "react";
 import { DrawingSheet } from "@/data/drawings";
 import { COLOR_PALETTES } from "@/data/palettes";
 import {
@@ -31,6 +31,10 @@ export interface StrokeEvent {
   opacity: number;
 }
 
+export interface TactileCanvasHandle {
+  exportCanvas: () => string;
+}
+
 interface TactileCanvasProps {
   sheet: DrawingSheet;
   onStrokeRecorded?: (stroke: StrokeEvent) => void;
@@ -40,18 +44,22 @@ interface TactileCanvasProps {
   readOnly?: boolean;
 }
 
-export function TactileCanvas({
-  sheet,
-  onStrokeRecorded,
-  externalStrokes,
-  onCanvasExportReady,
-  className = "",
-  readOnly = false,
-}: TactileCanvasProps) {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const viewportRef = useRef<HTMLDivElement>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const lineArtImageRef = useRef<HTMLImageElement | null>(null);
+export const TactileCanvas = forwardRef<TactileCanvasHandle, TactileCanvasProps>(
+  function TactileCanvas(
+    {
+      sheet,
+      onStrokeRecorded,
+      externalStrokes,
+      onCanvasExportReady,
+      className = "",
+      readOnly = false,
+    },
+    ref
+  ) {
+    const containerRef = useRef<HTMLDivElement>(null);
+    const viewportRef = useRef<HTMLDivElement>(null);
+    const canvasRef = useRef<HTMLCanvasElement>(null);
+    const lineArtImageRef = useRef<HTMLImageElement | null>(null);
 
   // Tools & Styling
   const [currentTool, setCurrentTool] = useState<ToolType>("crayon");
@@ -154,8 +162,13 @@ export function TactileCanvas({
     exportCtx.drawImage(canvas, 0, 0);
 
     // 2. Render crisp transparent black line-art cleanly on top
-    if (lineArtImageRef.current) {
-      exportCtx.drawImage(lineArtImageRef.current, 0, 0, CANVAS_DIMENSION, CANVAS_DIMENSION);
+    const lineImg = lineArtImageRef.current;
+    if (lineImg && lineImg.complete && lineImg.naturalWidth > 0) {
+      try {
+        exportCtx.drawImage(lineImg, 0, 0, CANVAS_DIMENSION, CANVAS_DIMENSION);
+      } catch (err) {
+        console.warn("Could not draw line art overlay during export:", err);
+      }
     }
 
     let mergedUrl = "";
@@ -165,7 +178,21 @@ export function TactileCanvas({
         mergedUrl = exportCanvas.toDataURL("image/jpeg", 0.85);
       }
     } catch {
-      mergedUrl = exportCanvas.toDataURL("image/png");
+      try {
+        mergedUrl = exportCanvas.toDataURL("image/png");
+      } catch {
+        // Fallback directly to shading canvas if composited export threw SecurityError
+        try {
+          mergedUrl = canvas.toDataURL("image/webp", 0.85);
+        } catch {
+          mergedUrl = canvas.toDataURL();
+        }
+      }
+    }
+
+    // Safety fallback
+    if (!mergedUrl) {
+      mergedUrl = canvas.toDataURL();
     }
 
     if (onCanvasExportReady) {
@@ -174,10 +201,21 @@ export function TactileCanvas({
     return mergedUrl;
   }, [onCanvasExportReady]);
 
-  // Preload authentic transparent line-art image
+  // Expose imperative export method to parent component
+  useImperativeHandle(
+    ref,
+    () => ({
+      exportCanvas: exportMergedCanvas,
+    }),
+    [exportMergedCanvas]
+  );
+
+  // Preload authentic transparent line-art image (avoids crossOrigin taint on local static assets)
   useEffect(() => {
     const img = new Image();
-    img.crossOrigin = "anonymous";
+    if (!sheet.imageUrl.startsWith("/")) {
+      img.crossOrigin = "anonymous";
+    }
     img.src = sheet.imageUrl;
     img.onload = () => {
       lineArtImageRef.current = img;
@@ -938,4 +976,4 @@ export function TactileCanvas({
       </div>
     </div>
   );
-}
+});
