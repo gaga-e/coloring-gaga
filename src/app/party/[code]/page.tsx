@@ -325,35 +325,35 @@ export default function PartyRoomPage() {
   return (
     <div className="h-screen flex flex-col bg-stone-50 overflow-hidden">
       {/* Top Game Bar */}
-      <div className="bg-white border-b border-stone-200 px-4 py-2.5 flex items-center justify-between shrink-0 shadow-sm z-20">
-        <div className="flex items-center gap-3">
+      <div className="bg-white border-b border-stone-200 px-3 sm:px-4 py-2 sm:py-2.5 flex items-center justify-between shrink-0 shadow-sm z-20 gap-2">
+        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
           <button
             onClick={() => router.push("/")}
-            className="p-1.5 rounded-xl hover:bg-stone-100 text-stone-500"
+            className="p-1.5 rounded-xl hover:bg-stone-100 text-stone-500 shrink-0"
             title="Exit to Home"
           >
             <ArrowLeft className="w-4 h-4" />
           </button>
-          <div>
-            <h2 className="font-extrabold text-sm text-stone-900 leading-tight">
+          <div className="min-w-0">
+            <h2 className="font-extrabold text-xs sm:text-sm text-stone-900 leading-tight truncate max-w-[120px] sm:max-w-xs md:max-w-md">
               {currentSheet.title}
             </h2>
-            <span className="text-[10px] text-stone-400 font-semibold uppercase tracking-wider">
+            <span className="text-[9px] sm:text-[10px] text-stone-400 font-semibold uppercase tracking-wider block truncate">
               {room.mode === "differently" ? "Secret Shading Round" : "Coloring Together"}
             </span>
           </div>
         </div>
 
         {/* Center Countdown Clock */}
-        <div className="flex items-center gap-1.5 bg-amber-50 border border-amber-200/80 px-3.5 py-1 rounded-full text-amber-900">
-          <Clock className="w-4 h-4 text-amber-600 animate-pulse" />
-          <span className="font-mono text-sm font-black">{formatTime(timeLeft)}</span>
+        <div className="flex items-center gap-1.5 bg-amber-50 border border-amber-200/80 px-2.5 sm:px-3.5 py-1 rounded-full text-amber-900 shrink-0">
+          <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-600 animate-pulse" />
+          <span className="font-mono text-xs sm:text-sm font-black">{formatTime(timeLeft)}</span>
         </div>
 
         {/* Right Player Avatars & Submit Button */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
           {/* Active players avatars */}
-          <div className="hidden sm:flex items-center gap-1">
+          <div className="hidden md:flex items-center gap-1">
             {playersList.map((p) => (
               <span
                 key={p.id}
@@ -373,7 +373,7 @@ export default function PartyRoomPage() {
           <button
             onClick={handleFinishClick}
             disabled={currentPlayer.hasFinished}
-            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold transition active:scale-95 shadow-sm ${
+            className={`flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3.5 py-1.5 rounded-xl text-xs font-bold transition active:scale-95 shadow-sm whitespace-nowrap ${
               currentPlayer.hasFinished
                 ? "bg-emerald-100 text-emerald-800 cursor-default"
                 : "bg-emerald-600 hover:bg-emerald-700 text-white"
