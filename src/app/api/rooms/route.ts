@@ -8,10 +8,10 @@ export async function POST(req: NextRequest) {
 
     if (action === "create") {
       const { hostName, hostAvatar, sheetId, mode, durationSeconds } = body;
-      const result = createRoom(
+      const result = await createRoom(
         hostName,
         hostAvatar,
-        sheetId || "cozy-capybara",
+        sheetId || "capybara-onsen",
         mode || "differently",
         durationSeconds || 180
       );
@@ -20,7 +20,7 @@ export async function POST(req: NextRequest) {
 
     if (action === "join") {
       const { code, playerName, playerAvatar } = body;
-      const result = joinRoom(code, playerName, playerAvatar);
+      const result = await joinRoom(code, playerName, playerAvatar);
       if (!result) {
         return NextResponse.json({ error: "Room not found" }, { status: 404 });
       }

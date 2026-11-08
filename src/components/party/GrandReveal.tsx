@@ -58,8 +58,10 @@ export function GrandReveal({
     a.click();
   };
 
+  const alreadyVoted = hasVoted || Boolean(room.voters && room.voters[currentPlayer.id]);
+
   const handleVoteClick = (playerId: string) => {
-    if (hasVoted || playerId === currentPlayer.id) return;
+    if (alreadyVoted || playerId === currentPlayer.id) return;
     onVote(playerId);
     setHasVoted(true);
   };
@@ -176,17 +178,31 @@ export function GrandReveal({
                 <div className="flex items-center gap-2 pt-2 border-t border-stone-100">
                   <button
                     onClick={() => handleVoteClick(player.id)}
-                    disabled={hasVoted || player.id === currentPlayer.id}
+                    disabled={alreadyVoted || player.id === currentPlayer.id}
                     className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-bold transition active:scale-95 ${
                       player.id === currentPlayer.id
                         ? "bg-stone-100 text-stone-400 cursor-not-allowed"
-                        : hasVoted
-                        ? "bg-stone-100 text-stone-500 cursor-default"
+                        : room.voters?.[currentPlayer.id] === player.id
+                        ? "bg-rose-500 text-white shadow-sm cursor-default"
+                        : alreadyVoted
+                        ? "bg-stone-100 text-stone-400 cursor-default"
                         : "bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200"
                     }`}
                   >
-                    <Heart className="w-3.5 h-3.5" />
-                    <span>{hasVoted ? "Voted" : "Vote for Art"}</span>
+                    <Heart
+                      className={`w-3.5 h-3.5 ${
+                        room.voters?.[currentPlayer.id] === player.id ? "fill-current" : ""
+                      }`}
+                    />
+                    <span>
+                      {player.id === currentPlayer.id
+                        ? "Your Art"
+                        : room.voters?.[currentPlayer.id] === player.id
+                        ? "Your Pick ★"
+                        : alreadyVoted
+                        ? "Voted"
+                        : "Vote for Art"}
+                    </span>
                   </button>
 
                   {player.canvasDataUrl && (

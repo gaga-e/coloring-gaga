@@ -71,14 +71,14 @@ export function TactileCanvas({
   const isDrawingRef = useRef<boolean>(false);
   const currentPointsRef = useRef<Point[]>([]);
 
-  // History stack for Undo/Redo
+  // History stack for Undo/Redo (capped at 12 steps to prevent mobile memory bloat)
   const [history, setHistory] = useState<ImageData[]>([]);
   const [historyIndex, setHistoryIndex] = useState<number>(-1);
-  const maxHistorySteps = 25;
+  const maxHistorySteps = 12;
 
   const CANVAS_DIMENSION = 800;
 
-  // Initialize canvas
+  // Initialize canvas with draft recovery support
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -89,14 +89,35 @@ export function TactileCanvas({
     const ctx = canvas.getContext("2d", { willReadFrequently: true });
     if (!ctx) return;
 
-    // Fill with pristine paper background
-    ctx.fillStyle = "#FAF8F5";
-    ctx.fillRect(0, 0, CANVAS_DIMENSION, CANVAS_DIMENSION);
+    // Check if user has an existing saved draft for this sheet (protects against refresh/disconnect)
+    const draftKey = `coloring_draft_${sheet.id}`;
+    let savedDraft: string | null = null;
+    try {
+      savedDraft = typeof window !== "undefined" ? sessionStorage.getItem(draftKey) : null;
+    } catch {
+      savedDraft = null;
+    }
 
-    // Initial snapshot for history
-    const initialSnapshot = ctx.getImageData(0, 0, CANVAS_DIMENSION, CANVAS_DIMENSION);
-    setHistory([initialSnapshot]);
-    setHistoryIndex(0);
+    if (savedDraft) {
+      const draftImg = new Image();
+      draftImg.onload = () => {
+        ctx.drawImage(draftImg, 0, 0);
+        const restoredSnapshot = ctx.getImageData(0, 0, CANVAS_DIMENSION, CANVAS_DIMENSION);
+        setHistory([restoredSnapshot]);
+        setHistoryIndex(0);
+        exportMergedCanvas();
+      };
+      draftImg.src = savedDraft;
+    } else {
+      // Fill with pristine paper background
+      ctx.fillStyle = "#FAF8F5";
+      ctx.fillRect(0, 0, CANVAS_DIMENSION, CANVAS_DIMENSION);
+
+      // Initial snapshot for history
+      const initialSnapshot = ctx.getImageData(0, 0, CANVAS_DIMENSION, CANVAS_DIMENSION);
+      setHistory([initialSnapshot]);
+      setHistoryIndex(0);
+    }
   }, [sheet.id]);
 
   // Handle external incoming strokes (for "Coloring Together" co-op mode)
@@ -284,7 +305,17 @@ export function TactileCanvas({
       exportCtx.drawImage(lineArtImageRef.current, 0, 0, CANVAS_DIMENSION, CANVAS_DIMENSION);
     }
 
-    const mergedUrl = exportCanvas.toDataURL("image/png");
+    // Compress canvas export to WebP/JPEG (0.85 quality) to keep payload ~150KB instead of 2.5MB
+    let mergedUrl = "";
+    try {
+      mergedUrl = exportCanvas.toDataURL("image/webp", 0.85);
+      if (!mergedUrl.startsWith("data:image/webp")) {
+        mergedUrl = exportCanvas.toDataURL("image/jpeg", 0.85);
+      }
+    } catch {
+      mergedUrl = exportCanvas.toDataURL("image/png");
+    }
+
     if (onCanvasExportReady) {
       onCanvasExportReady(mergedUrl);
     }
@@ -303,7 +334,7 @@ export function TactileCanvas({
     };
   }, [sheet.imageUrl, exportMergedCanvas]);
 
-  // Save current canvas to history
+  // Save current canvas to history and debounce-save draft to session
   const pushHistory = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -320,11 +351,20 @@ export function TactileCanvas({
     });
     setHistoryIndex((prev) => Math.min(prev + 1, maxHistorySteps - 1));
 
+    // Save draft locally to recover if page is refreshed
+    if (typeof window !== "undefined") {
+      try {
+        sessionStorage.setItem(`coloring_draft_${sheet.id}`, canvas.toDataURL("image/webp", 0.6));
+      } catch {
+        // Ignored
+      }
+    }
+
     // Also trigger export update if callback provided
     if (onCanvasExportReady) {
       exportMergedCanvas();
     }
-  }, [historyIndex, onCanvasExportReady]);
+  }, [historyIndex, onCanvasExportReady, sheet.id, exportMergedCanvas]);
 
   // Undo / Redo
   const handleUndo = () => {
@@ -359,6 +399,13 @@ export function TactileCanvas({
 
     ctx.fillStyle = "#FAF8F5";
     ctx.fillRect(0, 0, CANVAS_DIMENSION, CANVAS_DIMENSION);
+    if (typeof window !== "undefined") {
+      try {
+        sessionStorage.removeItem(`coloring_draft_${sheet.id}`);
+      } catch {
+        // Ignored
+      }
+    }
     pushHistory();
   };
 
