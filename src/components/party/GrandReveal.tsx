@@ -86,7 +86,12 @@ export function GrandReveal({
   const reactionEmojis = ["❤️", "🔥", "✨", "🎨", "👏", "😍"];
 
   return (
-    <div className="min-h-screen bg-stone-50 py-10 px-4 relative overflow-hidden">
+    <div
+      className="min-h-[100dvh] bg-stone-50 py-10 px-4 relative overflow-hidden"
+      style={{
+        paddingBottom: "max(2.5rem, calc(env(safe-area-inset-bottom, 0px) + 2rem))",
+      }}
+    >
       {/* Floating Reactions Layer */}
       <div className="fixed inset-0 pointer-events-none z-50">
         {floatingEmojis.map((item) => (

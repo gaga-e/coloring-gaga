@@ -713,7 +713,7 @@ export const TactileCanvas = forwardRef<TactileCanvasHandle, TactileCanvasProps>
   const currentPalette = COLOR_PALETTES[activePaletteIndex] || COLOR_PALETTES[0];
 
   return (
-    <div className={`flex flex-col h-full select-none ${className}`} ref={containerRef}>
+    <div className={`flex flex-col h-full min-h-0 select-none ${className}`} ref={containerRef}>
       {/* Top Utility Ribbon */}
       <div className="flex items-center justify-between px-2 sm:px-4 py-1.5 sm:py-2 border-b border-stone-200 bg-white/80 backdrop-blur-md shrink-0 gap-2">
         <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
@@ -789,13 +789,14 @@ export const TactileCanvas = forwardRef<TactileCanvasHandle, TactileCanvasProps>
       {/* Main Canvas Viewport Area */}
       <div
         ref={viewportRef}
-        className="flex-1 relative overflow-hidden flex items-center justify-center p-2 sm:p-4 bg-stone-100/70 touch-none cursor-default"
+        className="flex-1 min-h-0 relative overflow-hidden flex items-center justify-center p-2 sm:p-4 bg-stone-100/70 touch-none cursor-default"
       >
         <div
           className="relative transition-transform duration-75 ease-out shadow-2xl rounded-2xl overflow-hidden touch-none border border-stone-300"
           style={{
-            width: "min(88vw, 70vh)",
-            height: "min(88vw, 70vh)",
+            width: "min(90vw, calc(100% - 16px), 720px)",
+            height: "min(90vw, calc(100% - 16px), 720px)",
+            aspectRatio: "1 / 1",
             maxWidth: "760px",
             maxHeight: "760px",
             transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
@@ -825,8 +826,13 @@ export const TactileCanvas = forwardRef<TactileCanvasHandle, TactileCanvasProps>
         </div>
       </div>
 
-      {/* Bottom Floating Control Center (Responsive Mobile-Ergonomic Bar) */}
-      <div className="border-t border-stone-200 bg-white/95 backdrop-blur-md px-3 sm:px-4 py-2 sm:py-2.5 flex flex-col gap-2 shrink-0 shadow-lg">
+      {/* Bottom Floating Control Center (Responsive Mobile-Ergonomic Bar with Safari Safe-Area) */}
+      <div
+        className="border-t border-stone-200 bg-white/95 backdrop-blur-md px-3 sm:px-4 pt-2 sm:pt-2.5 flex flex-col gap-2 shrink-0 shadow-lg"
+        style={{
+          paddingBottom: "max(0.625rem, calc(env(safe-area-inset-bottom, 0px) + 0.375rem))",
+        }}
+      >
         {/* Row 1: Brush Tools & Size Slider */}
         <div className="flex items-center justify-between gap-2 sm:gap-3 max-w-2xl mx-auto w-full">
           {/* Tool Selector */}

@@ -209,7 +209,7 @@ export default function PartyRoomPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-stone-50">
+      <div className="min-h-[100dvh] flex items-center justify-center bg-stone-50">
         <div className="text-center space-y-3">
           <div className="w-8 h-8 border-3 border-amber-500 border-t-transparent rounded-full animate-spin mx-auto" />
           <p className="text-stone-500 text-sm font-medium">Entering Party Room...</p>
@@ -220,7 +220,7 @@ export default function PartyRoomPage() {
 
   if (error || !room) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-stone-50 p-4">
+      <div className="min-h-[100dvh] flex items-center justify-center bg-stone-50 p-4">
         <div className="bg-white rounded-3xl p-8 max-w-md w-full text-center border border-stone-200 shadow-sm space-y-4">
           <AlertCircle className="w-10 h-10 text-rose-500 mx-auto" />
           <h2 className="text-xl font-bold text-stone-900">Room Not Found</h2>
@@ -241,7 +241,7 @@ export default function PartyRoomPage() {
   // If user hasn't joined this room yet, present Join Screen
   if (!currentPlayer) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-stone-50 p-4">
+      <div className="min-h-[100dvh] flex items-center justify-center bg-stone-50 p-4">
         <div className="bg-white rounded-3xl p-8 max-w-md w-full border border-stone-200 shadow-lg space-y-6">
           <div className="text-center space-y-1">
             <span className="text-xs font-bold uppercase tracking-wider text-amber-600">
@@ -307,7 +307,7 @@ export default function PartyRoomPage() {
   // 1. LOBBY VIEW
   if (room.status === "lobby") {
     return (
-      <div className="min-h-screen bg-stone-50">
+      <div className="min-h-[100dvh] bg-stone-50">
         <PartyLobby
           room={room}
           currentPlayer={currentPlayer}
@@ -342,9 +342,17 @@ export default function PartyRoomPage() {
   const playersList = Object.values(room.players);
 
   return (
-    <div className="h-screen flex flex-col bg-stone-50 overflow-hidden">
+    <div
+      className="h-[100dvh] max-h-[100dvh] flex flex-col bg-stone-50 overflow-hidden"
+      style={{ height: "100dvh", maxHeight: "100dvh" }}
+    >
       {/* Top Game Bar */}
-      <div className="bg-white border-b border-stone-200 px-3 sm:px-4 py-2 sm:py-2.5 flex items-center justify-between shrink-0 shadow-sm z-20 gap-2">
+      <div
+        className="bg-white border-b border-stone-200 px-3 sm:px-4 py-2 sm:py-2.5 flex items-center justify-between shrink-0 shadow-sm z-20 gap-2"
+        style={{
+          paddingTop: "max(0.5rem, env(safe-area-inset-top, 0px))",
+        }}
+      >
         <div className="flex items-center gap-2 sm:gap-3 min-w-0">
           <button
             onClick={() => router.push("/")}
