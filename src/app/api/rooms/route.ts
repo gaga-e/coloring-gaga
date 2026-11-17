@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createRoom, joinRoom } from "@/lib/rooms";
+import { createRoom, joinRoom, saveRoom } from "@/lib/rooms";
 
 export async function POST(req: NextRequest) {
   try {
@@ -25,6 +25,14 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: "Room not found" }, { status: 404 });
       }
       return NextResponse.json(result);
+    }
+
+    if (action === "sync") {
+      const { room } = body;
+      if (room && room.code) {
+        await saveRoom(room);
+        return NextResponse.json({ success: true, room });
+      }
     }
 
     return NextResponse.json({ error: "Invalid action" }, { status: 400 });

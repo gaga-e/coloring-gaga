@@ -8,7 +8,13 @@ export async function GET(
   const { code } = await context.params;
   const room = await getRoom(code);
   if (!room) {
-    return NextResponse.json({ error: "Room not found" }, { status: 404 });
+    return NextResponse.json(
+      { error: "Room not found" },
+      {
+        status: 404,
+        headers: { "Cache-Control": "no-store, no-cache, must-revalidate" },
+      }
+    );
   }
 
   let stateChanged = false;
@@ -45,7 +51,10 @@ export async function GET(
     await saveRoom(room);
   }
 
-  return NextResponse.json({ room });
+  return NextResponse.json(
+    { room },
+    { headers: { "Cache-Control": "no-store, no-cache, must-revalidate" } }
+  );
 }
 
 export async function POST(
@@ -55,7 +64,13 @@ export async function POST(
   const { code } = await context.params;
   const room = await getRoom(code);
   if (!room) {
-    return NextResponse.json({ error: "Room not found" }, { status: 404 });
+    return NextResponse.json(
+      { error: "Room not found" },
+      {
+        status: 404,
+        headers: { "Cache-Control": "no-store, no-cache, must-revalidate" },
+      }
+    );
   }
 
   try {

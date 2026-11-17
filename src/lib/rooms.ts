@@ -29,8 +29,18 @@ export interface RoomState {
 }
 
 // Check for Redis environment variables (supports Upstash Redis & Vercel KV)
-const redisUrl = process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL;
-const redisToken = process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN;
+const DEFAULT_REDIS_URL = "https://polished-goldfish-174969.upstash.io";
+const DEFAULT_REDIS_TOKEN = "gQAAAAAAAqt5AQIgcDE4Y2Q1M2M2ZTU3MjY0YTc2YjcyYzVmZWE3ZmEzMzMwYQ";
+
+const redisUrl =
+  process.env.UPSTASH_REDIS_REST_URL ||
+  process.env.KV_REST_API_URL ||
+  DEFAULT_REDIS_URL;
+
+const redisToken =
+  process.env.UPSTASH_REDIS_REST_TOKEN ||
+  process.env.KV_REST_API_TOKEN ||
+  DEFAULT_REDIS_TOKEN;
 
 export const redis =
   redisUrl && redisToken
@@ -55,6 +65,10 @@ export const rooms = global.__GAME_ROOMS__;
 // Room TTL: 2 hours (in seconds)
 const ROOM_TTL_SECONDS = 7200;
 
+export function sanitizeCode(code: string): string {
+  return (code || "").replace(/[^A-Za-z0-9]/g, "").toUpperCase();
+}
+
 export function generateRoomCode(): string {
   const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
   let code = "";
@@ -68,7 +82,8 @@ export function generateRoomCode(): string {
  * Fetch room state from Redis (production) or memory (fallback)
  */
 export async function getRoom(code: string): Promise<RoomState | null> {
-  const cleanCode = code.toUpperCase().trim();
+  const cleanCode = sanitizeCode(code);
+  if (!cleanCode) return null;
 
   // Try Redis first if configured
   if (redis) {
@@ -91,7 +106,10 @@ export async function getRoom(code: string): Promise<RoomState | null> {
  * Persist room state to both Redis (with 2-hour TTL) and local memory
  */
 export async function saveRoom(room: RoomState): Promise<void> {
-  const cleanCode = room.code.toUpperCase().trim();
+  const cleanCode = sanitizeCode(room.code);
+  if (!cleanCode) return;
+
+  room.code = cleanCode;
   rooms[cleanCode] = room;
 
   if (redis) {

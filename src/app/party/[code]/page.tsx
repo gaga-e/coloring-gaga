@@ -12,13 +12,14 @@ import { Clock, CheckCircle2, AlertCircle, ArrowLeft, Send, Sparkles } from "@/c
 export default function PartyRoomPage() {
   const params = useParams();
   const router = useRouter();
-  const roomCode = (params.code as string)?.toUpperCase();
+  const roomCode = ((params.code as string) || "").replace(/[^A-Za-z0-9]/g, "").toUpperCase();
 
   const [room, setRoom] = useState<RoomState | null>(null);
   const [currentPlayer, setCurrentPlayer] = useState<Player | null>(null);
   const [playerId, setPlayerId] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>("");
+  const [retryCount, setRetryCount] = useState<number>(0);
 
   // Join prompt modal for direct link visitors
   const [guestName, setGuestName] = useState<string>("");
@@ -33,35 +34,93 @@ export default function PartyRoomPage() {
   // Avatars selection
   const AVATARS = ["🎨", "✨", "🐱", "🦊", "🌸", "⭐", "🚀", "🐸", "🌻", "☕"];
 
-  // Load player ID from session storage
+  // Fast-hydrate from session storage immediately on mount
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      const storedId = sessionStorage.getItem(`coloring_player_${roomCode}`);
-      if (storedId) {
-        setPlayerId(storedId);
+    if (!roomCode || typeof window === "undefined") return;
+    const storedPlayerId = sessionStorage.getItem(`coloring_player_${roomCode}`);
+    if (storedPlayerId) {
+      setPlayerId(storedPlayerId);
+    }
+
+    try {
+      const cachedRoomStr = sessionStorage.getItem(`coloring_room_${roomCode}`);
+      if (cachedRoomStr) {
+        const cachedRoom = JSON.parse(cachedRoomStr);
+        setRoom(cachedRoom);
+        if (storedPlayerId && cachedRoom.players?.[storedPlayerId]) {
+          setCurrentPlayer(cachedRoom.players[storedPlayerId]);
+        }
+        setLoading(false);
       }
+    } catch {
+      // Ignored
     }
   }, [roomCode]);
 
-  // Polling sync loop for real-time room updates
+  // Polling sync loop for real-time room updates with retry resilience
   useEffect(() => {
     if (!roomCode) return;
 
     let isMounted = true;
+    let consecutive404s = 0;
+
     const fetchRoom = async () => {
       try {
-        const res = await fetch(`/api/rooms/${roomCode}`);
+        const res = await fetch(`/api/rooms/${roomCode}`, {
+          cache: "no-store",
+          headers: { "Cache-Control": "no-cache" },
+        });
+
         if (!res.ok) {
-          if (res.status === 404) setError("Party room not found.");
-          setLoading(false);
+          if (res.status === 404) {
+            consecutive404s++;
+
+            // Check if we have a locally cached room that can be re-synced to server
+            if (typeof window !== "undefined") {
+              const cached = sessionStorage.getItem(`coloring_room_${roomCode}`);
+              if (cached) {
+                try {
+                  const parsed = JSON.parse(cached);
+                  await fetch("/api/rooms", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ action: "sync", room: parsed }),
+                  });
+                  if (isMounted) {
+                    setRoom(parsed);
+                    setError("");
+                    setLoading(false);
+                  }
+                  consecutive404s = 0;
+                  return;
+                } catch {
+                  // Fall through
+                }
+              }
+            }
+
+            // Only show Room Not Found after 3 consecutive failures
+            if (consecutive404s >= 3 && isMounted) {
+              setError("Party room not found or has expired.");
+              setLoading(false);
+            }
+          }
           return;
         }
+
+        consecutive404s = 0;
         const data = await res.json();
-        if (isMounted) {
+        if (isMounted && data.room) {
           setRoom(data.room);
+          try {
+            sessionStorage.setItem(`coloring_room_${roomCode}`, JSON.stringify(data.room));
+          } catch {
+            // Ignored
+          }
           if (playerId && data.room.players[playerId]) {
             setCurrentPlayer(data.room.players[playerId]);
           }
+          setError("");
           setLoading(false);
         }
       } catch (err) {
@@ -109,7 +168,7 @@ export default function PartyRoomPage() {
       clearTimeout(timerId);
       document.removeEventListener("visibilitychange", handleVisibility);
     };
-  }, [roomCode, playerId, room?.status, room?.mode]);
+  }, [roomCode, playerId, room?.status, room?.mode, retryCount]);
 
   // Synchronized Countdown Timer
   useEffect(() => {
@@ -155,6 +214,7 @@ export default function PartyRoomPage() {
 
       const data = await res.json();
       sessionStorage.setItem(`coloring_player_${roomCode}`, data.playerId);
+      sessionStorage.setItem(`coloring_room_${roomCode}`, JSON.stringify(data.room));
       setPlayerId(data.playerId);
       setRoom(data.room);
       setCurrentPlayer(data.room.players[data.playerId]);
@@ -227,12 +287,24 @@ export default function PartyRoomPage() {
           <p className="text-stone-500 text-sm">
             This party room may have ended or the code is incorrect.
           </p>
-          <button
-            onClick={() => router.push("/")}
-            className="w-full py-3 rounded-2xl bg-stone-900 text-white font-bold text-sm hover:bg-black transition"
-          >
-            Return to Home
-          </button>
+          <div className="space-y-2 pt-2">
+            <button
+              onClick={() => {
+                setError("");
+                setLoading(true);
+                setRetryCount((c) => c + 1);
+              }}
+              className="w-full py-3 rounded-2xl bg-amber-500 text-white font-bold text-sm hover:bg-amber-600 transition shadow-sm"
+            >
+              Retry Connection
+            </button>
+            <button
+              onClick={() => router.push("/")}
+              className="w-full py-3 rounded-2xl bg-stone-100 text-stone-700 font-bold text-sm hover:bg-stone-200 transition"
+            >
+              Return to Home
+            </button>
+          </div>
         </div>
       </div>
     );

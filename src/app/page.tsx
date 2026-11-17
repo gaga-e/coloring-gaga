@@ -67,8 +67,10 @@ export default function HomePage() {
 
       if (!res.ok) throw new Error("Failed to create room");
       const data = await res.json();
-      sessionStorage.setItem(`coloring_player_${data.room.code}`, data.hostId);
-      router.push(`/party/${data.room.code}`);
+      const code = data.room.code;
+      sessionStorage.setItem(`coloring_player_${code}`, data.hostId);
+      sessionStorage.setItem(`coloring_room_${code}`, JSON.stringify(data.room));
+      router.push(`/party/${code}`);
     } catch (err) {
       console.error(err);
       setIsSubmitting(false);
@@ -77,7 +79,7 @@ export default function HomePage() {
 
   const handleJoinByCode = (e: React.FormEvent) => {
     e.preventDefault();
-    const cleanCode = joinCode.trim().toUpperCase();
+    const cleanCode = joinCode.replace(/[^A-Za-z0-9]/g, "").toUpperCase();
     if (cleanCode.length !== 6) {
       setJoinError("Enter a valid 6-character party code");
       return;
