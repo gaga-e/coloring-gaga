@@ -39,6 +39,7 @@ export interface TactileCanvasHandle {
 interface TactileCanvasProps {
   sheet: DrawingSheet;
   onStrokeRecorded?: (stroke: StrokeEvent) => void;
+  onClear?: () => void;
   externalStrokes?: StrokeEvent[];
   onCanvasExportReady?: (dataUrl: string) => void;
   className?: string;
@@ -50,6 +51,7 @@ export const TactileCanvas = forwardRef<TactileCanvasHandle, TactileCanvasProps>
     {
       sheet,
       onStrokeRecorded,
+      onClear,
       externalStrokes,
       onCanvasExportReady,
       className = "",
@@ -140,8 +142,11 @@ export const TactileCanvas = forwardRef<TactileCanvasHandle, TactileCanvasProps>
     };
   }, []);
 
+  const lastRenderedStrokeIndexRef = useRef<number>(-1);
+
   // Initialize canvas with pristine clean paper (prevents remnant colors from past sessions)
   useEffect(() => {
+    lastRenderedStrokeIndexRef.current = -1;
     const canvas = canvasRef.current;
     if (!canvas) return;
 
@@ -152,6 +157,8 @@ export const TactileCanvas = forwardRef<TactileCanvasHandle, TactileCanvasProps>
     if (!ctx) return;
 
     // Fill with pristine paper background
+    ctx.beginPath();
+    ctx.clearRect(0, 0, CANVAS_DIMENSION, CANVAS_DIMENSION);
     ctx.fillStyle = "#FAF8F5";
     ctx.fillRect(0, 0, CANVAS_DIMENSION, CANVAS_DIMENSION);
 
@@ -160,16 +167,31 @@ export const TactileCanvas = forwardRef<TactileCanvasHandle, TactileCanvasProps>
     setHistoryIndex(0);
   }, [sheet.id]);
 
-  // Handle external incoming strokes (for "Coloring Together" co-op mode)
+  // Handle external incoming strokes (for "Coloring Together" co-op mode) without re-drawing already rendered strokes
   useEffect(() => {
-    if (!externalStrokes || externalStrokes.length === 0) return;
+    if (!externalStrokes) return;
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    const lastStroke = externalStrokes[externalStrokes.length - 1];
-    drawStrokeOnContext(ctx, lastStroke);
+    if (externalStrokes.length === 0) {
+      if (lastRenderedStrokeIndexRef.current > -1) {
+        ctx.beginPath();
+        ctx.clearRect(0, 0, CANVAS_DIMENSION, CANVAS_DIMENSION);
+        ctx.fillStyle = "#FAF8F5";
+        ctx.fillRect(0, 0, CANVAS_DIMENSION, CANVAS_DIMENSION);
+        lastRenderedStrokeIndexRef.current = -1;
+      }
+      return;
+    }
+
+    // Only draw new strokes that haven't been rendered yet
+    const startIndex = Math.max(0, lastRenderedStrokeIndexRef.current + 1);
+    for (let i = startIndex; i < externalStrokes.length; i++) {
+      drawStrokeOnContext(ctx, externalStrokes[i]);
+    }
+    lastRenderedStrokeIndexRef.current = externalStrokes.length - 1;
   }, [externalStrokes]);
 
   // Export full merged canvas (Colored Shading + Transparent Black Line Art)
@@ -521,7 +543,7 @@ export const TactileCanvas = forwardRef<TactileCanvasHandle, TactileCanvasProps>
     }
   };
 
-  // Save current canvas to history and debounce-save draft to session
+  // Save current canvas to history
   const pushHistory = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -538,18 +560,10 @@ export const TactileCanvas = forwardRef<TactileCanvasHandle, TactileCanvasProps>
     });
     setHistoryIndex((prev) => Math.min(prev + 1, maxHistorySteps - 1));
 
-    if (typeof window !== "undefined") {
-      try {
-        sessionStorage.setItem(`coloring_draft_${sheet.id}`, canvas.toDataURL("image/webp", 0.6));
-      } catch {
-        // Ignored
-      }
-    }
-
     if (onCanvasExportReady) {
       exportMergedCanvas();
     }
-  }, [historyIndex, onCanvasExportReady, sheet.id, exportMergedCanvas]);
+  }, [historyIndex, onCanvasExportReady, exportMergedCanvas]);
 
   // Undo / Redo
   const handleUndo = () => {
@@ -579,13 +593,23 @@ export const TactileCanvas = forwardRef<TactileCanvasHandle, TactileCanvasProps>
   };
 
   const handleClear = () => {
+    isDrawingRef.current = false;
+    currentPointsRef.current = [];
+
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
+    ctx.beginPath();
+    ctx.clearRect(0, 0, CANVAS_DIMENSION, CANVAS_DIMENSION);
     ctx.fillStyle = "#FAF8F5";
     ctx.fillRect(0, 0, CANVAS_DIMENSION, CANVAS_DIMENSION);
+
+    if (externalStrokes) {
+      lastRenderedStrokeIndexRef.current = externalStrokes.length - 1;
+    }
+
     if (typeof window !== "undefined") {
       try {
         sessionStorage.removeItem(`coloring_draft_${sheet.id}`);
@@ -594,6 +618,8 @@ export const TactileCanvas = forwardRef<TactileCanvasHandle, TactileCanvasProps>
       }
     }
     pushHistory();
+    exportMergedCanvas();
+    onClear?.();
   };
 
   // Convert Pointer coordinates to Canvas internal space (800x800)

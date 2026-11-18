@@ -541,6 +541,11 @@ export default function PartyRoomPage() {
               sendRoomAction("stroke", { stroke });
             }
           }}
+          onClear={() => {
+            if (room.mode === "together") {
+              sendRoomAction("clear");
+            }
+          }}
           externalStrokes={room.mode === "together" ? room.sharedStrokes : undefined}
           onCanvasExportReady={(dataUrl) => {
             canvasExportRef.current = dataUrl;

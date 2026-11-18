@@ -152,6 +152,12 @@ export async function POST(
         }
         break;
       }
+      case "clear": {
+        if (room.mode === "together") {
+          room.sharedStrokes = [];
+        }
+        break;
+      }
       case "vote": {
         const { targetPlayerId } = body;
         // Self-voting prevention
