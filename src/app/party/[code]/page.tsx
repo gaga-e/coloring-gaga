@@ -415,7 +415,6 @@ export default function PartyRoomPage() {
         room={room}
         sheet={currentSheet}
         currentPlayer={currentPlayer}
-        onReact={(emoji) => sendRoomAction("react", { emoji })}
         onResetRoom={() => sendRoomAction("reset")}
       />
     );
@@ -455,7 +454,7 @@ export default function PartyRoomPage() {
               {currentSheet.title}
             </h2>
             <span className="text-[9px] sm:text-[10px] text-stone-400 font-semibold uppercase tracking-wider block truncate">
-              {room.mode === "together" ? "Mode 1: Same Canvas Co-Op" : "Mode 2: Separate Canvases"}
+              {room.mode === "together" ? "Coloring Together" : "Coloring Differently"}
             </span>
           </div>
         </div>

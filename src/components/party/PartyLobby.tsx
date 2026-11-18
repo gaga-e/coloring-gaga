@@ -49,8 +49,8 @@ export function PartyLobby({
           <Sparkles className="w-3.5 h-3.5 text-amber-600" />
           <span>
             {room.mode === "together"
-              ? "Mode 1: Coloring Together (Same Canvas)"
-              : "Mode 2: Coloring Differently (Separate Canvases)"}
+              ? "Coloring Together (Same Canvas)"
+              : "Coloring Differently (Separate Canvases)"}
           </span>
         </div>
         <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-stone-900 mb-2">

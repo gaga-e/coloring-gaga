@@ -188,7 +188,7 @@ export default function HomePage() {
               Live Co-Op Jam
             </span>
             <h3 className="text-xl font-black text-stone-900 mt-1 mb-2">
-              Mode 1: Coloring Together
+              Coloring Together
             </h3>
             <p className="text-xs text-stone-500 leading-relaxed">
               Everyone draws on the <strong>exact same canvas</strong> in real-time! You and your friends shade,
@@ -205,7 +205,7 @@ export default function HomePage() {
               Parallel Showcase
             </span>
             <h3 className="text-xl font-black text-stone-900 mt-1 mb-2">
-              Mode 2: Coloring Differently
+              Coloring Differently
             </h3>
             <p className="text-xs text-stone-500 leading-relaxed">
               Everyone gets the same original drawing to shade secretly on their own <strong>separate canvas</strong>.
@@ -350,9 +350,6 @@ export default function HomePage() {
                         : "border-stone-200 hover:bg-stone-50"
                     }`}
                   >
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-orange-600 block mb-0.5">
-                      Mode 1
-                    </span>
                     <span className="font-extrabold text-xs text-stone-900 block">
                       Coloring Together
                     </span>
@@ -370,9 +367,6 @@ export default function HomePage() {
                         : "border-stone-200 hover:bg-stone-50"
                     }`}
                   >
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-amber-600 block mb-0.5">
-                      Mode 2
-                    </span>
                     <span className="font-extrabold text-xs text-stone-900 block">
                       Coloring Differently
                     </span>
