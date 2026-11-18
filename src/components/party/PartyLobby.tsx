@@ -127,10 +127,10 @@ export function PartyLobby({
                   key={player.id}
                   className="flex items-center justify-between p-2.5 rounded-xl bg-stone-50 border border-stone-100"
                 >
-                  <div className="flex items-center gap-2.5 min-w-0">
+                  <div className="flex items-center gap-2.5 min-w-0 flex-1">
                     <span className="text-lg shrink-0">{player.avatar}</span>
-                    <div className="flex items-center gap-1.5 min-w-0">
-                      <span className="font-medium text-xs text-stone-800 truncate max-w-[110px] sm:max-w-[140px]" title={player.name}>
+                    <div className="flex items-center gap-1.5 min-w-0 flex-1">
+                      <span className="font-medium text-xs text-stone-800 truncate" title={player.name}>
                         {player.name}
                       </span>
                       {player.isHost && (
@@ -146,19 +146,17 @@ export function PartyLobby({
                   <div className="shrink-0 ml-2">
                     {player.isReady ? (
                       <span
-                        className="inline-flex items-center justify-center gap-1 text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-1.5 sm:px-2 py-0.5 rounded-full border border-emerald-200"
+                        className="w-5 h-5 rounded-full bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-600 shadow-2xs"
                         title="Ready"
                       >
-                        <Check className="w-3 h-3 text-emerald-600 shrink-0" />
-                        <span className="hidden sm:inline">Ready</span>
+                        <Check className="w-3 h-3 stroke-[2.5]" />
                       </span>
                     ) : (
                       <span
-                        className="inline-flex items-center justify-center text-[11px] font-medium text-stone-400 bg-stone-100 px-1.5 sm:px-2 py-0.5 rounded-full"
+                        className="w-5 h-5 rounded-full bg-stone-100 flex items-center justify-center text-stone-400 text-[10px]"
                         title="Waiting"
                       >
-                        <span className="hidden sm:inline">Waiting</span>
-                        <span className="sm:hidden text-[10px] leading-none px-0.5">···</span>
+                        ···
                       </span>
                     )}
                   </div>
@@ -275,11 +273,9 @@ export function PartyLobby({
               </button>
             </div>
 
-            {/* Clean Footer with Hints */}
-            <div className="mt-3 flex items-center justify-between text-xs text-stone-400">
+            {/* Clean Footer */}
+            <div className="mt-3 text-xs text-stone-400">
               <span>Category: {currentSheet.category}</span>
-              <span className="hidden sm:inline">Use arrows to change drawing</span>
-              <span className="sm:hidden">Swipe or use arrows to change</span>
             </div>
           </div>
         </div>
