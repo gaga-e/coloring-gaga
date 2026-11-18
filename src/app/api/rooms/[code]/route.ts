@@ -37,11 +37,11 @@ export async function GET(
     }
   }
 
-  // 2. Auto-transition to reveal if all players finished or round time expired
+  // 2. Auto-transition to reveal if all players finished or round time expired (with 3s client sync grace)
   if (room.status === "playing" && room.startedAt) {
     const elapsed = (Date.now() - room.startedAt) / 1000;
     const allFinished = Object.values(room.players).every((p) => p.hasFinished);
-    if (elapsed >= room.durationSeconds || allFinished) {
+    if (elapsed >= room.durationSeconds + 3 || allFinished) {
       room.status = "reveal";
       stateChanged = true;
     }
@@ -103,6 +103,15 @@ export async function POST(
         const { canvasDataUrl } = body;
         player.canvasDataUrl = canvasDataUrl;
         player.hasFinished = true;
+
+        // In Mode 1 (together): Everyone is drawing on the same canvas, so share the latest export
+        if (room.mode === "together" && canvasDataUrl) {
+          for (const p of Object.values(room.players)) {
+            if (!p.canvasDataUrl) {
+              p.canvasDataUrl = canvasDataUrl;
+            }
+          }
+        }
 
         const playersList = Object.values(room.players);
         const allDone = playersList.every((p) => p.hasFinished);

@@ -48,18 +48,18 @@ export function PartyLobby({
         <div className="inline-flex items-center gap-2 bg-amber-100 text-amber-900 px-3.5 py-1.5 rounded-full text-xs font-semibold mb-3">
           <Sparkles className="w-3.5 h-3.5 text-amber-600" />
           <span>
-            {room.mode === "differently"
-              ? "Mode: Coloring Differently (BrushBrawl Battle)"
-              : "Mode: Coloring Together (Live Co-Op)"}
+            {room.mode === "together"
+              ? "Mode 1: Coloring Together (Same Canvas)"
+              : "Mode 2: Coloring Differently (Separate Canvases)"}
           </span>
         </div>
         <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-stone-900 mb-2">
           Coloring Party Room
         </h1>
         <p className="text-stone-500 text-sm max-w-lg mx-auto">
-          {room.mode === "differently"
-            ? "Everyone colors this same drawing secretly. When the timer ends, we reveal all masterpieces side-by-side!"
-            : "Everyone draws and shades on the same collaborative canvas in real-time."}
+          {room.mode === "together"
+            ? "Everyone draws and shades on the exact same collaborative canvas in real-time."
+            : "Everyone colors secretly on their own separate canvas. When time is up, we reveal all different canvases side-by-side!"}
         </p>
 
         {/* Room Code Card */}

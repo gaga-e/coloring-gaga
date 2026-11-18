@@ -180,13 +180,20 @@ export default function PartyRoomPage() {
       setTimeLeft(remaining);
 
       // Time expired: auto-submit local canvas and transition to reveal
-      if (remaining === 0 && currentPlayer && !currentPlayer.hasFinished) {
+      if (remaining <= 0 && currentPlayer && !currentPlayer.hasFinished) {
         handleFinishClick();
       }
     }, 1000);
 
     return () => clearInterval(timerInterval);
   }, [room?.status, room?.startedAt, currentPlayer]);
+
+  // Auto-submit safety net: if round transitions to reveal, immediately capture & submit
+  useEffect(() => {
+    if (room?.status === "reveal" && currentPlayer && !currentPlayer.hasFinished) {
+      handleFinishClick();
+    }
+  }, [room?.status, currentPlayer?.hasFinished]);
 
   // Guest join handler
   const handleGuestJoin = async (e: React.FormEvent) => {
@@ -251,7 +258,18 @@ export default function PartyRoomPage() {
     }
     if (!exportUrl || exportUrl.length < 50) {
       if (typeof window !== "undefined") {
-        exportUrl = sessionStorage.getItem(`coloring_draft_${currentSheet.id}`) || "";
+        exportUrl =
+          sessionStorage.getItem(`coloring_draft_${currentSheet.id}`) ||
+          sessionStorage.getItem(`coloring_last_canvas_${roomCode}`) ||
+          "";
+      }
+    }
+
+    if (typeof window !== "undefined" && exportUrl && exportUrl.length > 50) {
+      try {
+        sessionStorage.setItem(`coloring_last_canvas_${roomCode}`, exportUrl);
+      } catch {
+        // Ignored
       }
     }
 
@@ -397,7 +415,6 @@ export default function PartyRoomPage() {
         room={room}
         sheet={currentSheet}
         currentPlayer={currentPlayer}
-        onVote={(targetPlayerId) => sendRoomAction("vote", { targetPlayerId })}
         onReact={(emoji) => sendRoomAction("react", { emoji })}
         onResetRoom={() => sendRoomAction("reset")}
       />
@@ -438,7 +455,7 @@ export default function PartyRoomPage() {
               {currentSheet.title}
             </h2>
             <span className="text-[9px] sm:text-[10px] text-stone-400 font-semibold uppercase tracking-wider block truncate">
-              {room.mode === "differently" ? "Secret Shading Round" : "Coloring Together"}
+              {room.mode === "together" ? "Mode 1: Same Canvas Co-Op" : "Mode 2: Separate Canvases"}
             </span>
           </div>
         </div>

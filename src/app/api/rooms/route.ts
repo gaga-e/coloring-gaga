@@ -12,7 +12,7 @@ export async function POST(req: NextRequest) {
         hostName,
         hostAvatar,
         sheetId || "capybara-onsen",
-        mode || "differently",
+        mode || "together",
         durationSeconds || 180
       );
       return NextResponse.json(result);

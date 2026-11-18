@@ -195,11 +195,19 @@ export const TactileCanvas = forwardRef<TactileCanvasHandle, TactileCanvasProps>
       mergedUrl = canvas.toDataURL();
     }
 
+    if (typeof window !== "undefined" && mergedUrl.length > 100) {
+      try {
+        sessionStorage.setItem(`coloring_draft_${sheet.id}`, mergedUrl);
+      } catch {
+        // Ignored
+      }
+    }
+
     if (onCanvasExportReady) {
       onCanvasExportReady(mergedUrl);
     }
     return mergedUrl;
-  }, [onCanvasExportReady]);
+  }, [onCanvasExportReady, sheet.id]);
 
   // Expose imperative export method to parent component
   useImperativeHandle(

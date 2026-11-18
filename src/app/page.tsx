@@ -23,7 +23,7 @@ export default function HomePage() {
   // Create party modal state
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [selectedSheet, setSelectedSheet] = useState<DrawingSheet>(DRAWING_SHEETS[0]);
-  const [selectedMode, setSelectedMode] = useState<GameMode>("differently");
+  const [selectedMode, setSelectedMode] = useState<GameMode>("together");
   const [duration, setDuration] = useState<number>(180);
   const [hostName, setHostName] = useState<string>("");
   const [hostAvatar, setHostAvatar] = useState<string>("🎨");
@@ -179,25 +179,7 @@ export default function HomePage() {
       {/* The Two Game Modes Explainer */}
       <section className="max-w-5xl mx-auto px-4 py-8">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-          {/* Mode 1 Card */}
-          <div className="bg-white rounded-3xl p-6 border border-stone-200 shadow-sm relative overflow-hidden group hover:border-amber-300 transition">
-            <div className="w-10 h-10 rounded-2xl bg-amber-50 text-amber-700 flex items-center justify-center mb-4">
-              <Layers className="w-5 h-5" />
-            </div>
-            <span className="text-[11px] font-bold uppercase tracking-wider text-amber-600">
-              BrushBrawl Style
-            </span>
-            <h3 className="text-xl font-black text-stone-900 mt-1 mb-2">
-              Mode 1: Coloring Differently
-            </h3>
-            <p className="text-xs text-stone-500 leading-relaxed">
-              Everyone gets the exact same drawing to shade privately on their own screen with a
-              synchronized timer. When time is up: <strong>The Grand Reveal</strong> displays all
-              artworks side-by-side for voting and emoji reactions!
-            </p>
-          </div>
-
-          {/* Mode 2 Card */}
+          {/* Mode 1 Card: Same Canvas */}
           <div className="bg-white rounded-3xl p-6 border border-stone-200 shadow-sm relative overflow-hidden group hover:border-amber-300 transition">
             <div className="w-10 h-10 rounded-2xl bg-orange-50 text-orange-700 flex items-center justify-center mb-4">
               <Users className="w-5 h-5" />
@@ -206,11 +188,28 @@ export default function HomePage() {
               Live Co-Op Jam
             </span>
             <h3 className="text-xl font-black text-stone-900 mt-1 mb-2">
-              Mode 2: Coloring Together
+              Mode 1: Coloring Together
             </h3>
             <p className="text-xs text-stone-500 leading-relaxed">
-              Join the same canvas in real-time. You and your friends draw, shade, and bring one
-              shared illustration to life together with instant live strokes.
+              Everyone draws on the <strong>exact same canvas</strong> in real-time! You and your friends shade,
+              color, and bring one shared illustration to life together with instant live strokes.
+            </p>
+          </div>
+
+          {/* Mode 2 Card: Different Canvases */}
+          <div className="bg-white rounded-3xl p-6 border border-stone-200 shadow-sm relative overflow-hidden group hover:border-amber-300 transition">
+            <div className="w-10 h-10 rounded-2xl bg-amber-50 text-amber-700 flex items-center justify-center mb-4">
+              <Layers className="w-5 h-5" />
+            </div>
+            <span className="text-[11px] font-bold uppercase tracking-wider text-amber-600">
+              Parallel Showcase
+            </span>
+            <h3 className="text-xl font-black text-stone-900 mt-1 mb-2">
+              Mode 2: Coloring Differently
+            </h3>
+            <p className="text-xs text-stone-500 leading-relaxed">
+              Everyone gets the same original drawing to shade secretly on their own <strong>separate canvas</strong>.
+              When time is up, <strong>The Grand Reveal</strong> displays all different canvases side-by-side with celebratory confetti!
             </p>
           </div>
         </div>
@@ -344,23 +343,6 @@ export default function HomePage() {
                 <div className="grid grid-cols-2 gap-2">
                   <button
                     type="button"
-                    onClick={() => setSelectedMode("differently")}
-                    className={`p-3 rounded-2xl border text-left transition ${
-                      selectedMode === "differently"
-                        ? "border-amber-500 bg-amber-50/50 ring-2 ring-amber-500/20"
-                        : "border-stone-200 hover:bg-stone-50"
-                    }`}
-                  >
-                    <span className="font-extrabold text-xs text-stone-900 block">
-                      Coloring Differently
-                    </span>
-                    <span className="text-[11px] text-stone-500 leading-tight block mt-1">
-                      Secret parallel shading &amp; Grand Reveal comparison.
-                    </span>
-                  </button>
-
-                  <button
-                    type="button"
                     onClick={() => setSelectedMode("together")}
                     className={`p-3 rounded-2xl border text-left transition ${
                       selectedMode === "together"
@@ -368,11 +350,34 @@ export default function HomePage() {
                         : "border-stone-200 hover:bg-stone-50"
                     }`}
                   >
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-orange-600 block mb-0.5">
+                      Mode 1
+                    </span>
                     <span className="font-extrabold text-xs text-stone-900 block">
                       Coloring Together
                     </span>
                     <span className="text-[11px] text-stone-500 leading-tight block mt-1">
-                      Real-time live co-op drawing on the same canvas.
+                      Everyone draws on the <strong>same canvas</strong> in real-time.
+                    </span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setSelectedMode("differently")}
+                    className={`p-3 rounded-2xl border text-left transition ${
+                      selectedMode === "differently"
+                        ? "border-amber-500 bg-amber-50/50 ring-2 ring-amber-500/20"
+                        : "border-stone-200 hover:bg-stone-50"
+                    }`}
+                  >
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-amber-600 block mb-0.5">
+                      Mode 2
+                    </span>
+                    <span className="font-extrabold text-xs text-stone-900 block">
+                      Coloring Differently
+                    </span>
+                    <span className="text-[11px] text-stone-500 leading-tight block mt-1">
+                      Two different canvases shown side-by-side at the end.
                     </span>
                   </button>
                 </div>
