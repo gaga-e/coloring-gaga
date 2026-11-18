@@ -6,15 +6,13 @@ import { DRAWING_SHEETS, DrawingSheet, ART_CATEGORIES } from "@/data/drawings";
 import { GameMode } from "@/lib/rooms";
 import {
   Sparkles,
-  Users,
-  Palette,
   Play,
-  ArrowRight,
-  Clock,
+  Users,
   Layers,
-  ChevronRight,
-  ShieldCheck,
   Check,
+  ChevronDown,
+  ChevronUp,
+  Palette,
 } from "@/components/ui/icons";
 
 export default function HomePage() {
@@ -23,6 +21,7 @@ export default function HomePage() {
   // Create party modal state
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [selectedSheet, setSelectedSheet] = useState<DrawingSheet>(DRAWING_SHEETS[0]);
+  const [isArtworkPickerOpen, setIsArtworkPickerOpen] = useState(false);
   const [selectedMode, setSelectedMode] = useState<GameMode>("together");
   const [duration, setDuration] = useState<number>(180);
   const [hostName, setHostName] = useState<string>("");
@@ -31,13 +30,12 @@ export default function HomePage() {
 
   // Join by code state
   const [joinCode, setJoinCode] = useState("");
-  const [isJoining, setIsJoining] = useState(false);
   const [joinError, setJoinError] = useState("");
 
   // Gallery filter
   const [activeCategory, setActiveCategory] = useState<string>("All Styles");
 
-  const AVATARS = ["🎨", "✨", "🐱", "🦊", "🌸", "⭐", "🚀", "🐸", "🌻", "☕"];
+  const AVATARS = ["🎨", "✨", "🐱", "🦊", "🌸", "⭐", "🚀"];
 
   const filteredSheets =
     activeCategory === "All Styles"
@@ -52,12 +50,13 @@ export default function HomePage() {
     setIsSubmitting(true);
 
     try {
+      const cleanHostName = hostName.trim().slice(0, 12);
       const res = await fetch("/api/rooms", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           action: "create",
-          hostName: hostName.trim(),
+          hostName: cleanHostName,
           hostAvatar,
           sheetId: selectedSheet.id,
           mode: selectedMode,
@@ -81,21 +80,19 @@ export default function HomePage() {
     e.preventDefault();
     const cleanCode = joinCode.replace(/[^A-Za-z0-9]/g, "").toUpperCase();
     if (cleanCode.length !== 6) {
-      setJoinError("Enter a valid 6-character party code");
+      setJoinError("Enter a valid 6-character code");
       return;
     }
     router.push(`/party/${cleanCode}`);
   };
 
   return (
-    <div className="min-h-screen bg-[#FAF9F6] text-stone-900 font-sans selection:bg-amber-200">
+    <div className="min-h-screen bg-[#FAF9F6] text-stone-800 font-sans">
       {/* Top Clean Navigation */}
-      <header className="sticky top-0 z-30 bg-[#FAF9F6]/90 backdrop-blur-md border-b border-stone-200/70">
+      <header className="sticky top-0 z-30 bg-[#FAF9F6]/95 backdrop-blur-md border-b border-stone-200/80">
         <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <span className="w-9 h-9 rounded-2xl bg-amber-500 text-white flex items-center justify-center font-black shadow-md shadow-amber-200 text-lg">
-              🎨
-            </span>
+          <div className="flex items-center gap-2">
+            <Palette className="w-6 h-6 text-amber-500 stroke-[2.2] shrink-0" />
             <span className="font-extrabold text-xl tracking-tight text-stone-900">
               Coloring<span className="text-amber-600">Gaga</span>
             </span>
@@ -105,11 +102,12 @@ export default function HomePage() {
             <button
               onClick={() => {
                 setSelectedSheet(DRAWING_SHEETS[0]);
+                setIsArtworkPickerOpen(false);
                 setIsCreateOpen(true);
               }}
-              className="hidden sm:inline-flex items-center gap-2 bg-stone-900 hover:bg-black text-white text-xs font-bold px-4 py-2.5 rounded-full shadow-sm transition active:scale-95"
+              className="hidden sm:inline-flex items-center gap-1.5 bg-amber-500 hover:bg-amber-600 text-white text-xs font-semibold px-4 py-2 rounded-xl transition active:scale-95 shadow-sm"
             >
-              <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+              <Sparkles className="w-4 h-4" />
               <span>Create Party</span>
             </button>
           </div>
@@ -117,42 +115,42 @@ export default function HomePage() {
       </header>
 
       {/* Hero Section */}
-      <section className="max-w-6xl mx-auto px-4 pt-12 pb-10 text-center">
-        <div className="inline-flex items-center gap-2 bg-amber-100/80 text-amber-900 px-3.5 py-1.5 rounded-full text-xs font-bold mb-4 shadow-sm">
+      <section className="max-w-4xl mx-auto px-4 pt-12 pb-10 text-center">
+        <div className="inline-flex items-center gap-2 bg-amber-100/70 text-amber-800 px-3 py-1 rounded-full text-xs font-medium mb-4">
           <Sparkles className="w-3.5 h-3.5 text-amber-600" />
-          <span>Multiplayer Cozy Coloring Game</span>
+          <span>Social Coloring</span>
         </div>
 
-        <h1 className="text-4xl sm:text-6xl font-black tracking-tight text-stone-900 max-w-3xl mx-auto leading-[1.15]">
-          Hand-shade beautiful art <br />
-          <span className="bg-gradient-to-r from-amber-600 via-orange-500 to-rose-500 bg-clip-text text-transparent">
-            together or in secret battles.
+        <h1 className="text-4xl sm:text-5xl font-black tracking-tight text-stone-900 leading-tight">
+          Color, unwind, and <br />
+          <span className="bg-gradient-to-r from-amber-600 to-orange-500 bg-clip-text text-transparent">
+            create together.
           </span>
         </h1>
 
-        <p className="mt-4 text-stone-500 text-base sm:text-lg max-w-xl mx-auto font-normal">
-          No cheap one-click fill. Tactile, soothing finger-shading with curated color
-          palettes. Host a party, challenge friends, and reveal all interpretations side-by-side.
+        <p className="mt-3.5 text-stone-600 text-sm sm:text-base max-w-md mx-auto leading-relaxed">
+          Soothing, tactile coloring with beautiful curated palettes. Shade peacefully with friends in real time or compare interpretations at the end.
         </p>
 
         {/* Quick Action Boxes */}
-        <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3 max-w-lg mx-auto">
+        <div className="mt-8 flex flex-col sm:flex-row items-stretch justify-center gap-3 max-w-md mx-auto">
           {/* Create Game Button */}
           <button
             onClick={() => {
               setSelectedSheet(DRAWING_SHEETS[0]);
+              setIsArtworkPickerOpen(false);
               setIsCreateOpen(true);
             }}
-            className="w-full sm:w-auto flex-1 flex items-center justify-center gap-2 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-extrabold text-sm px-6 py-3.5 rounded-2xl shadow-lg shadow-amber-200 transition active:scale-95"
+            className="flex-1 flex items-center justify-center gap-2 bg-amber-500 hover:bg-amber-600 text-white font-semibold text-sm px-5 py-3 rounded-xl shadow-sm transition active:scale-95 min-h-[48px]"
           >
-            <Play className="w-4 h-4 fill-current" />
-            <span>Start a Coloring Party</span>
+            <Sparkles className="w-4 h-4" />
+            <span>Start a Party</span>
           </button>
 
           {/* Join with Code Box */}
           <form
             onSubmit={handleJoinByCode}
-            className="w-full sm:w-auto flex-1 flex items-center bg-white border border-stone-200 rounded-2xl p-1 shadow-sm focus-within:ring-2 focus-within:ring-amber-500/20"
+            className="flex-1 flex items-center bg-white border border-stone-200 rounded-xl p-1 shadow-sm focus-within:border-amber-400 min-h-[48px]"
           >
             <input
               type="text"
@@ -163,80 +161,76 @@ export default function HomePage() {
                 setJoinCode(e.target.value.toUpperCase());
                 setJoinError("");
               }}
-              className="w-full px-3 py-2 text-xs font-mono font-bold tracking-wider text-stone-800 placeholder:text-stone-400 focus:outline-none uppercase bg-transparent"
+              className="w-full px-3 py-1.5 text-xs font-mono font-bold tracking-wider text-stone-800 placeholder:text-stone-400 focus:outline-none uppercase bg-transparent"
             />
             <button
               type="submit"
-              className="bg-stone-900 hover:bg-black text-white text-xs font-bold px-3.5 py-2 rounded-xl transition shrink-0 active:scale-95"
+              className="bg-amber-500 hover:bg-amber-600 text-white text-xs font-semibold px-4 py-2 rounded-lg transition shrink-0 active:scale-95"
             >
               Join
             </button>
           </form>
         </div>
-        {joinError && <p className="text-rose-500 text-xs font-semibold mt-2">{joinError}</p>}
+        {joinError && <p className="text-rose-500 text-xs font-medium mt-2">{joinError}</p>}
       </section>
 
-      {/* The Two Game Modes Explainer */}
-      <section className="max-w-5xl mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+      {/* The Two Modes Explainer */}
+      <section className="max-w-4xl mx-auto px-4 py-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {/* Mode 1 Card: Same Canvas */}
-          <div className="bg-white rounded-3xl p-6 border border-stone-200 shadow-sm relative overflow-hidden group hover:border-amber-300 transition">
-            <div className="w-10 h-10 rounded-2xl bg-orange-50 text-orange-700 flex items-center justify-center mb-4">
-              <Users className="w-5 h-5" />
+          <div className="bg-white rounded-2xl p-5 border border-stone-200/90 shadow-sm flex flex-col justify-between">
+            <div>
+              <div className="w-9 h-9 rounded-xl bg-amber-100/70 text-amber-700 flex items-center justify-center mb-3">
+                <Users className="w-4 h-4" />
+              </div>
+              <h3 className="text-base font-bold text-stone-900 mb-1.5">
+                Coloring Together
+              </h3>
+              <p className="text-xs text-stone-600 leading-relaxed">
+                Everyone draws on the exact same canvas in real-time. You and your friends shade, color, and bring one shared illustration to life together with instant live strokes.
+              </p>
             </div>
-            <span className="text-[11px] font-bold uppercase tracking-wider text-orange-600">
-              Live Co-Op Jam
-            </span>
-            <h3 className="text-xl font-black text-stone-900 mt-1 mb-2">
-              Coloring Together
-            </h3>
-            <p className="text-xs text-stone-500 leading-relaxed">
-              Everyone draws on the <strong>exact same canvas</strong> in real-time! You and your friends shade,
-              color, and bring one shared illustration to life together with instant live strokes.
-            </p>
           </div>
 
           {/* Mode 2 Card: Different Canvases */}
-          <div className="bg-white rounded-3xl p-6 border border-stone-200 shadow-sm relative overflow-hidden group hover:border-amber-300 transition">
-            <div className="w-10 h-10 rounded-2xl bg-amber-50 text-amber-700 flex items-center justify-center mb-4">
-              <Layers className="w-5 h-5" />
+          <div className="bg-white rounded-2xl p-5 border border-stone-200/90 shadow-sm flex flex-col justify-between">
+            <div>
+              <div className="w-9 h-9 rounded-xl bg-amber-100/70 text-amber-700 flex items-center justify-center mb-3">
+                <Layers className="w-4 h-4" />
+              </div>
+              <h3 className="text-base font-bold text-stone-900 mb-1.5">
+                Coloring Differently
+              </h3>
+              <p className="text-xs text-stone-600 leading-relaxed">
+                Everyone gets the same original drawing to shade secretly on their own separate canvas. When time is up, The Grand Reveal displays all different canvases side-by-side with celebratory confetti.
+              </p>
             </div>
-            <span className="text-[11px] font-bold uppercase tracking-wider text-amber-600">
-              Parallel Showcase
-            </span>
-            <h3 className="text-xl font-black text-stone-900 mt-1 mb-2">
-              Coloring Differently
-            </h3>
-            <p className="text-xs text-stone-500 leading-relaxed">
-              Everyone gets the same original drawing to shade secretly on their own <strong>separate canvas</strong>.
-              When time is up, <strong>The Grand Reveal</strong> displays all different canvases side-by-side with celebratory confetti!
-            </p>
           </div>
         </div>
       </section>
 
       {/* Artwork Catalog Gallery */}
       <section className="max-w-6xl mx-auto px-4 py-10">
-        <div className="space-y-4 mb-8">
+        <div className="space-y-3 mb-6">
           <div>
-            <h2 className="text-2xl sm:text-3xl font-black text-stone-900 tracking-tight">
+            <h2 className="text-xl sm:text-2xl font-bold text-stone-900 tracking-tight">
               Curated Art Gallery
             </h2>
-            <p className="text-xs sm:text-sm text-stone-500 mt-1">
-              High-resolution, hand-crafted line art across aesthetic themes. Pick a drawing to start or join a party!
+            <p className="text-xs sm:text-sm text-stone-500 mt-0.5">
+              Pick a drawing to start or explore our styles.
             </p>
           </div>
 
-          {/* Category Filter Chips - Placed below title & subtitle, wraps cleanly without horizontal scroll wheel */}
-          <div className="flex flex-wrap items-center gap-2 pt-1">
+          {/* Category Filter Chips */}
+          <div className="flex flex-wrap items-center gap-1.5 pt-1">
             {ART_CATEGORIES.map((cat) => (
               <button
                 key={cat}
                 onClick={() => setActiveCategory(cat)}
-                className={`text-xs sm:text-sm px-4 py-2 rounded-full font-bold transition active:scale-95 ${
+                className={`text-xs px-3.5 py-1.5 rounded-full font-medium transition active:scale-95 ${
                   activeCategory === cat
-                    ? "bg-stone-900 text-white shadow-sm"
-                    : "bg-white border border-stone-200/90 text-stone-600 hover:bg-stone-100 hover:border-stone-300"
+                    ? "bg-amber-500 text-white shadow-sm"
+                    : "bg-white border border-stone-200 text-stone-600 hover:bg-stone-50"
                 }`}
               >
                 {cat}
@@ -246,30 +240,29 @@ export default function HomePage() {
         </div>
 
         {/* Gallery Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
           {filteredSheets.map((sheet) => (
             <div
               key={sheet.id}
-              className="bg-white rounded-3xl p-5 border border-stone-200 shadow-sm hover:shadow-md transition flex flex-col justify-between group"
+              className="bg-white rounded-2xl p-4 border border-stone-200/90 shadow-sm hover:border-amber-300 transition flex flex-col justify-between"
             >
               <div>
-                {/* Real Drawing Image Preview */}
-                <div className="aspect-square w-full rounded-2xl bg-[#FAF8F5] border border-stone-200 overflow-hidden flex items-center justify-center p-3 mb-4 relative shadow-inner group-hover:scale-[1.01] transition-transform">
+                <div className="relative aspect-square w-full rounded-xl bg-[#FAF8F5] border border-stone-100 overflow-hidden flex items-center justify-center p-2 mb-3">
                   <img
                     src={sheet.imageUrl}
                     alt={sheet.title}
-                    className="w-full h-full object-contain select-none"
+                    className="w-full h-full object-contain"
                     loading="lazy"
                   />
-                  <span className="absolute top-3 right-3 bg-white/90 backdrop-blur-md text-[10px] font-bold text-stone-700 px-2.5 py-0.5 rounded-full shadow-xs border border-stone-200">
+                  <span className="absolute top-2 right-2 bg-white/90 backdrop-blur-xs text-[10px] font-semibold text-stone-700 px-2 py-0.5 rounded-md border border-stone-200">
                     {sheet.difficulty}
                   </span>
                 </div>
 
-                <span className="text-[10px] font-bold uppercase tracking-wider text-amber-600">
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-amber-600">
                   {sheet.category}
                 </span>
-                <h3 className="font-extrabold text-stone-900 text-base mt-0.5 mb-1">
+                <h3 className="font-bold text-stone-900 text-sm mt-0.5 mb-1">
                   {sheet.title}
                 </h3>
                 <p className="text-xs text-stone-500 line-clamp-2 leading-relaxed">
@@ -277,14 +270,15 @@ export default function HomePage() {
                 </p>
               </div>
 
-              {/* Action Buttons */}
-              <div className="mt-4 pt-3 border-t border-stone-100 flex items-center gap-2">
+              {/* Action Button */}
+              <div className="mt-4 pt-3 border-t border-stone-100">
                 <button
                   onClick={() => {
                     setSelectedSheet(sheet);
+                    setIsArtworkPickerOpen(false);
                     setIsCreateOpen(true);
                   }}
-                  className="w-full flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-900 text-xs font-bold transition active:scale-95"
+                  className="w-full flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-stone-100 hover:bg-amber-50 hover:text-amber-800 text-stone-700 text-xs font-semibold transition active:scale-95"
                 >
                   <Play className="w-3.5 h-3.5 fill-current text-amber-600" />
                   <span>Choose This Artwork</span>
@@ -297,77 +291,152 @@ export default function HomePage() {
 
       {/* CREATE GAME MODAL */}
       {isCreateOpen && (
-        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-lg w-full border border-stone-200 shadow-2xl relative animate-in fade-in zoom-in-95 duration-150 my-8">
+        <div className="fixed inset-0 z-50 bg-stone-900/25 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-white rounded-2xl p-6 max-w-md w-full border border-stone-200 shadow-xl relative animate-in fade-in zoom-in-95 duration-150 my-6">
             <div className="flex items-center justify-between mb-4">
               <div>
-                <span className="text-xs font-bold uppercase tracking-wider text-amber-600">
+                <span className="text-xs font-semibold uppercase tracking-wider text-amber-600">
                   Host Party
                 </span>
-                <h2 className="text-2xl font-black text-stone-900">Create Game Room</h2>
+                <h2 className="text-xl font-bold text-stone-900">Create Room</h2>
               </div>
               <button
-                onClick={() => setIsCreateOpen(false)}
-                className="w-8 h-8 rounded-full bg-stone-100 hover:bg-stone-200 flex items-center justify-center text-stone-500 font-bold"
+                onClick={() => {
+                  setIsCreateOpen(false);
+                  setIsArtworkPickerOpen(false);
+                }}
+                className="w-7 h-7 rounded-full bg-stone-100 hover:bg-stone-200 flex items-center justify-center text-stone-500 text-xs font-bold transition"
               >
                 ✕
               </button>
             </div>
 
             <form onSubmit={handleCreateRoom} className="space-y-4">
-              {/* Selected Sheet Header */}
-              <div className="flex items-center gap-3 p-3 rounded-2xl bg-stone-50 border border-stone-200">
-                <div className="w-14 h-14 rounded-xl bg-[#FAF8F5] border border-stone-200 p-1 shrink-0 overflow-hidden flex items-center justify-center">
-                  <img
-                    src={selectedSheet.imageUrl}
-                    alt={selectedSheet.title}
-                    className="w-full h-full object-contain"
-                  />
-                </div>
-                <div>
-                  <span className="text-[10px] font-bold text-amber-600 uppercase">
-                    Selected Sheet
+              {/* Custom On-Theme Artwork Selector */}
+              <div className="relative">
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="text-xs font-semibold text-stone-700">
+                    Drawing Artwork
+                  </label>
+                  <span className="text-[10px] text-stone-400 font-medium">
+                    {DRAWING_SHEETS.length} artworks available
                   </span>
-                  <h4 className="font-bold text-sm text-stone-900 leading-tight">
-                    {selectedSheet.title}
-                  </h4>
-                  <p className="text-[11px] text-stone-400">{selectedSheet.category}</p>
                 </div>
+
+                {/* Interactive Trigger Button */}
+                <button
+                  type="button"
+                  onClick={() => setIsArtworkPickerOpen(!isArtworkPickerOpen)}
+                  className={`w-full flex items-center justify-between gap-3 p-2.5 rounded-xl border text-left transition active:scale-[0.99] ${
+                    isArtworkPickerOpen
+                      ? "border-amber-500 bg-amber-50/30 ring-2 ring-amber-500/10"
+                      : "border-stone-200 bg-stone-50 hover:bg-stone-100/70 hover:border-stone-300"
+                  }`}
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="w-12 h-12 rounded-lg bg-[#FAF8F5] border border-stone-200/80 p-1 shrink-0 overflow-hidden flex items-center justify-center">
+                      <img
+                        src={selectedSheet.imageUrl}
+                        alt={selectedSheet.title}
+                        className="w-full h-full object-contain"
+                      />
+                    </div>
+                    <div className="min-w-0">
+                      <h4 className="font-bold text-xs text-stone-900 truncate">
+                        {selectedSheet.title}
+                      </h4>
+                      <p className="text-[11px] text-stone-500">
+                        {selectedSheet.category} • {selectedSheet.difficulty}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="p-1 text-stone-400 hover:text-stone-600 shrink-0">
+                    {isArtworkPickerOpen ? (
+                      <ChevronUp className="w-4 h-4 text-stone-500" />
+                    ) : (
+                      <ChevronDown className="w-4 h-4 text-stone-400" />
+                    )}
+                  </div>
+                </button>
+
+                {/* Custom Popover Dropdown Menu - Floats over other elements without increasing modal height */}
+                {isArtworkPickerOpen && (
+                  <div className="absolute top-full left-0 right-0 mt-1.5 z-50 bg-white border border-stone-200 rounded-xl shadow-xl max-h-56 overflow-y-auto divide-y divide-stone-100 animate-in fade-in zoom-in-95 duration-100">
+                    {DRAWING_SHEETS.map((sheet) => {
+                      const isSelected = sheet.id === selectedSheet.id;
+                      return (
+                        <button
+                          key={sheet.id}
+                          type="button"
+                          onClick={() => {
+                            setSelectedSheet(sheet);
+                            setIsArtworkPickerOpen(false);
+                          }}
+                          className={`w-full flex items-center justify-between p-2.5 text-left transition ${
+                            isSelected
+                              ? "bg-amber-50/80 text-amber-900"
+                              : "hover:bg-stone-50 text-stone-800"
+                          }`}
+                        >
+                          <div className="flex items-center gap-2.5 min-w-0">
+                            <div className="w-9 h-9 rounded-md bg-[#FAF8F5] border border-stone-200 p-0.5 shrink-0 overflow-hidden flex items-center justify-center">
+                              <img
+                                src={sheet.imageUrl}
+                                alt={sheet.title}
+                                className="w-full h-full object-contain"
+                              />
+                            </div>
+                            <div className="min-w-0">
+                              <p className="text-xs font-semibold truncate">{sheet.title}</p>
+                              <p className="text-[10px] text-stone-500">
+                                {sheet.category} • {sheet.difficulty}
+                              </p>
+                            </div>
+                          </div>
+                          {isSelected && (
+                            <Check className="w-4 h-4 text-amber-600 shrink-0 ml-2" />
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
 
               {/* Choose Game Mode */}
               <div>
-                <label className="block text-xs font-bold text-stone-700 mb-1.5">
-                  Choose Game Mode
+                <label className="block text-xs font-semibold text-stone-700 mb-1.5">
+                  Mode
                 </label>
                 <div className="grid grid-cols-2 gap-2">
                   <button
                     type="button"
                     onClick={() => setSelectedMode("together")}
-                    className={`p-3 rounded-2xl border text-left transition ${
+                    className={`p-3 rounded-xl border text-left transition ${
                       selectedMode === "together"
-                        ? "border-orange-500 bg-orange-50/50 ring-2 ring-orange-500/20"
+                        ? "border-amber-500 bg-amber-50/50"
                         : "border-stone-200 hover:bg-stone-50"
                     }`}
                   >
-                    <span className="font-extrabold text-xs text-stone-900 block">
+                    <span className="font-bold text-xs text-stone-900 block">
                       Coloring Together
                     </span>
                     <span className="text-[11px] text-stone-500 leading-tight block mt-1">
-                      Everyone draws on the <strong>same canvas</strong> in real-time.
+                      Everyone draws on the same canvas in real-time.
                     </span>
                   </button>
 
                   <button
                     type="button"
                     onClick={() => setSelectedMode("differently")}
-                    className={`p-3 rounded-2xl border text-left transition ${
+                    className={`p-3 rounded-xl border text-left transition ${
                       selectedMode === "differently"
-                        ? "border-amber-500 bg-amber-50/50 ring-2 ring-amber-500/20"
+                        ? "border-amber-500 bg-amber-50/50"
                         : "border-stone-200 hover:bg-stone-50"
                     }`}
                   >
-                    <span className="font-extrabold text-xs text-stone-900 block">
+                    <span className="font-bold text-xs text-stone-900 block">
                       Coloring Differently
                     </span>
                     <span className="text-[11px] text-stone-500 leading-tight block mt-1">
@@ -379,8 +448,8 @@ export default function HomePage() {
 
               {/* Timer Duration */}
               <div>
-                <label className="block text-xs font-bold text-stone-700 mb-1.5">
-                  Round Timer
+                <label className="block text-xs font-semibold text-stone-700 mb-1.5">
+                  Round Duration
                 </label>
                 <div className="grid grid-cols-4 gap-2">
                   {[
@@ -393,9 +462,9 @@ export default function HomePage() {
                       key={t.secs}
                       type="button"
                       onClick={() => setDuration(t.secs)}
-                      className={`py-2 rounded-xl text-xs font-bold border transition ${
+                      className={`py-2 rounded-xl text-xs font-semibold border transition ${
                         duration === t.secs
-                          ? "bg-stone-900 text-white border-stone-900"
+                          ? "bg-amber-500 text-white border-amber-500 shadow-sm"
                           : "border-stone-200 text-stone-600 hover:bg-stone-50"
                       }`}
                     >
@@ -407,34 +476,39 @@ export default function HomePage() {
 
               {/* Host Nickname */}
               <div>
-                <label className="block text-xs font-bold text-stone-700 mb-1">
-                  Your Nickname
-                </label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="text-xs font-semibold text-stone-700">
+                    Your Nickname
+                  </label>
+                  <span className="text-[10px] text-stone-400 font-medium">
+                    Max 12 characters
+                  </span>
+                </div>
                 <input
                   type="text"
                   required
-                  maxLength={18}
+                  maxLength={12}
                   value={hostName}
-                  onChange={(e) => setHostName(e.target.value)}
+                  onChange={(e) => setHostName(e.target.value.slice(0, 12))}
                   placeholder="e.g. Maya"
-                  className="w-full px-4 py-2.5 rounded-2xl border border-stone-200 bg-stone-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-500/20 text-sm font-semibold text-stone-900"
+                  className="w-full px-3.5 py-2 rounded-xl border border-stone-200 bg-stone-50 focus:bg-white focus:outline-none focus:border-amber-500 text-xs font-medium text-stone-900"
                 />
               </div>
 
-              {/* Host Avatar */}
+              {/* Host Avatar (All in one line) */}
               <div>
-                <label className="block text-xs font-bold text-stone-700 mb-1.5">
-                  Choose Avatar
+                <label className="block text-xs font-semibold text-stone-700 mb-1.5">
+                  Avatar
                 </label>
-                <div className="flex flex-wrap gap-2 justify-center">
+                <div className="flex items-center justify-between gap-1.5 sm:gap-2">
                   {AVATARS.map((av) => (
                     <button
                       key={av}
                       type="button"
                       onClick={() => setHostAvatar(av)}
-                      className={`w-9 h-9 rounded-xl text-lg flex items-center justify-center transition ${
+                      className={`flex-1 aspect-square max-w-[44px] rounded-xl text-lg flex items-center justify-center transition active:scale-95 ${
                         hostAvatar === av
-                          ? "bg-amber-100 ring-2 ring-amber-500 scale-105"
+                          ? "bg-amber-100 ring-2 ring-amber-500 shadow-2xs"
                           : "bg-stone-100 hover:bg-stone-200"
                       }`}
                     >
@@ -448,9 +522,9 @@ export default function HomePage() {
               <button
                 type="submit"
                 disabled={isSubmitting || !hostName.trim()}
-                className="w-full py-3.5 rounded-2xl bg-amber-500 hover:bg-amber-600 disabled:opacity-40 text-white font-extrabold text-sm shadow-lg shadow-amber-200 transition active:scale-95"
+                className="w-full py-3 rounded-xl bg-amber-500 hover:bg-amber-600 disabled:opacity-40 text-white font-semibold text-xs shadow-sm transition active:scale-95"
               >
-                {isSubmitting ? "Creating Room..." : "Launch Party Room"}
+                {isSubmitting ? "Creating Room..." : "Launch Room"}
               </button>
             </form>
           </div>

@@ -143,7 +143,7 @@ export async function createRoom(
     players: {
       [hostId]: {
         id: hostId,
-        name: hostName || "Host",
+        name: (hostName || "Host").trim().slice(0, 12),
         avatar: hostAvatar || "🎨",
         isHost: true,
         isReady: true,
@@ -175,7 +175,7 @@ export async function joinRoom(
   const playerId = "p_" + Math.random().toString(36).substring(2, 9);
   room.players[playerId] = {
     id: playerId,
-    name: playerName || `Player ${Object.keys(room.players).length + 1}`,
+    name: (playerName || `Player ${Object.keys(room.players).length + 1}`).trim().slice(0, 12),
     avatar: playerAvatar || "✨",
     isHost: false,
     isReady: false,

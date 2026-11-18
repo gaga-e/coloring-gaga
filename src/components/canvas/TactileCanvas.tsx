@@ -14,6 +14,7 @@ import {
   Maximize2,
   Palette,
   Check,
+  ChevronDown,
 } from "@/components/ui/icons";
 
 export type ToolType = "crayon" | "marker" | "pencil" | "eraser";
@@ -67,6 +68,19 @@ export const TactileCanvas = forwardRef<TactileCanvasHandle, TactileCanvasProps>
   const [brushSize, setBrushSize] = useState<number>(24);
   const [brushOpacity, setBrushOpacity] = useState<number>(0.92);
   const [activePaletteIndex, setActivePaletteIndex] = useState<number>(0);
+  const [isPaletteOpen, setIsPaletteOpen] = useState<boolean>(false);
+  const paletteRef = useRef<HTMLDivElement>(null);
+
+  // Close palette popup when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (paletteRef.current && !paletteRef.current.contains(e.target as Node)) {
+        setIsPaletteOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   // Zoom & Pan
   const [zoom, setZoom] = useState<number>(1);
@@ -93,8 +107,40 @@ export const TactileCanvas = forwardRef<TactileCanvasHandle, TactileCanvasProps>
   const maxHistorySteps = 14;
 
   const CANVAS_DIMENSION = 800;
+  const [canvasSize, setCanvasSize] = useState<number>(500);
 
-  // Initialize canvas with draft recovery support
+  // Maintain perfect 1:1 square aspect ratio fitting inside the available viewport
+  useEffect(() => {
+    const viewport = viewportRef.current;
+    if (!viewport) return;
+
+    const updateSize = () => {
+      const rect = viewport.getBoundingClientRect();
+      const padding = window.innerWidth < 640 ? 16 : 32;
+      const availW = Math.max(260, rect.width - padding);
+      const availH = Math.max(260, rect.height - padding);
+      const square = Math.floor(Math.min(availW, availH, 720));
+      setCanvasSize(square);
+    };
+
+    updateSize();
+
+    let ro: ResizeObserver | null = null;
+    if (typeof ResizeObserver !== "undefined") {
+      ro = new ResizeObserver(() => {
+        updateSize();
+      });
+      ro.observe(viewport);
+    }
+
+    window.addEventListener("resize", updateSize);
+    return () => {
+      if (ro) ro.disconnect();
+      window.removeEventListener("resize", updateSize);
+    };
+  }, []);
+
+  // Initialize canvas with pristine clean paper (prevents remnant colors from past sessions)
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -105,34 +151,13 @@ export const TactileCanvas = forwardRef<TactileCanvasHandle, TactileCanvasProps>
     const ctx = canvas.getContext("2d", { willReadFrequently: true });
     if (!ctx) return;
 
-    // Check if user has an existing saved draft for this sheet
-    const draftKey = `coloring_draft_${sheet.id}`;
-    let savedDraft: string | null = null;
-    try {
-      savedDraft = typeof window !== "undefined" ? sessionStorage.getItem(draftKey) : null;
-    } catch {
-      savedDraft = null;
-    }
+    // Fill with pristine paper background
+    ctx.fillStyle = "#FAF8F5";
+    ctx.fillRect(0, 0, CANVAS_DIMENSION, CANVAS_DIMENSION);
 
-    if (savedDraft) {
-      const draftImg = new Image();
-      draftImg.onload = () => {
-        ctx.drawImage(draftImg, 0, 0);
-        const restoredSnapshot = ctx.getImageData(0, 0, CANVAS_DIMENSION, CANVAS_DIMENSION);
-        setHistory([restoredSnapshot]);
-        setHistoryIndex(0);
-        exportMergedCanvas();
-      };
-      draftImg.src = savedDraft;
-    } else {
-      // Fill with pristine paper background
-      ctx.fillStyle = "#FAF8F5";
-      ctx.fillRect(0, 0, CANVAS_DIMENSION, CANVAS_DIMENSION);
-
-      const initialSnapshot = ctx.getImageData(0, 0, CANVAS_DIMENSION, CANVAS_DIMENSION);
-      setHistory([initialSnapshot]);
-      setHistoryIndex(0);
-    }
+    const initialSnapshot = ctx.getImageData(0, 0, CANVAS_DIMENSION, CANVAS_DIMENSION);
+    setHistory([initialSnapshot]);
+    setHistoryIndex(0);
   }, [sheet.id]);
 
   // Handle external incoming strokes (for "Coloring Together" co-op mode)
@@ -193,14 +218,6 @@ export const TactileCanvas = forwardRef<TactileCanvasHandle, TactileCanvasProps>
     // Safety fallback
     if (!mergedUrl) {
       mergedUrl = canvas.toDataURL();
-    }
-
-    if (typeof window !== "undefined" && mergedUrl.length > 100) {
-      try {
-        sessionStorage.setItem(`coloring_draft_${sheet.id}`, mergedUrl);
-      } catch {
-        // Ignored
-      }
     }
 
     if (onCanvasExportReady) {
@@ -589,8 +606,8 @@ export const TactileCanvas = forwardRef<TactileCanvasHandle, TactileCanvasProps>
     const scaleY = CANVAS_DIMENSION / rect.height;
 
     return {
-      x: (e.clientX - rect.left) * scaleX,
-      y: (e.clientY - rect.top) * scaleY,
+      x: Math.max(0, Math.min(CANVAS_DIMENSION, (e.clientX - rect.left) * scaleX)),
+      y: Math.max(0, Math.min(CANVAS_DIMENSION, (e.clientY - rect.top) * scaleY)),
     };
   };
 
@@ -800,13 +817,13 @@ export const TactileCanvas = forwardRef<TactileCanvasHandle, TactileCanvasProps>
         className="flex-1 min-h-0 relative overflow-hidden flex items-center justify-center p-2 sm:p-4 bg-stone-100/70 touch-none cursor-default"
       >
         <div
-          className="relative transition-transform duration-75 ease-out shadow-2xl rounded-2xl overflow-hidden touch-none border border-stone-300"
+          className="relative transition-transform duration-75 ease-out shadow-sm rounded-2xl overflow-hidden touch-none border border-stone-200/90 bg-[#FAF8F5] shrink-0"
           style={{
-            width: "min(90vw, calc(100% - 16px), 720px)",
-            height: "min(90vw, calc(100% - 16px), 720px)",
+            width: `${canvasSize}px`,
+            height: `${canvasSize}px`,
+            maxWidth: `${canvasSize}px`,
+            maxHeight: `${canvasSize}px`,
             aspectRatio: "1 / 1",
-            maxWidth: "760px",
-            maxHeight: "760px",
             transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
             transformOrigin: "center center",
             cursor: isPanMode ? (isPanningRef.current ? "grabbing" : "grab") : "crosshair",
@@ -815,6 +832,8 @@ export const TactileCanvas = forwardRef<TactileCanvasHandle, TactileCanvasProps>
           {/* Layer 1: Active Shading Canvas */}
           <canvas
             ref={canvasRef}
+            width={CANVAS_DIMENSION}
+            height={CANVAS_DIMENSION}
             className="absolute inset-0 w-full h-full block"
             style={{ touchAction: "none" }}
             onPointerDown={handlePointerDown}
@@ -828,7 +847,8 @@ export const TactileCanvas = forwardRef<TactileCanvasHandle, TactileCanvasProps>
           <img
             src={sheet.imageUrl}
             alt={sheet.title}
-            className="absolute inset-0 w-full h-full object-contain pointer-events-none select-none"
+            className="absolute inset-0 w-full h-full block pointer-events-none select-none"
+            style={{ width: "100%", height: "100%", objectFit: "fill" }}
             draggable={false}
           />
         </div>
@@ -925,20 +945,64 @@ export const TactileCanvas = forwardRef<TactileCanvasHandle, TactileCanvasProps>
 
         {/* Row 2: Aesthetic Color Palettes & Swatches */}
         <div className="flex items-center justify-between gap-2 max-w-2xl mx-auto w-full">
-          {/* Palette Theme Selector Button */}
-          <div className="relative shrink-0">
-            <select
-              value={activePaletteIndex}
-              onChange={(e) => setActivePaletteIndex(Number(e.target.value))}
-              aria-label="Color Palette Theme"
-              className="appearance-none bg-stone-100 hover:bg-stone-200 border-none rounded-xl px-2 sm:px-2.5 py-1.5 pr-5 sm:pr-6 text-[11px] sm:text-xs font-semibold text-stone-700 cursor-pointer focus:outline-none transition max-w-[110px] sm:max-w-[130px] truncate"
+          {/* Custom Palette Theme Selector */}
+          <div className="relative shrink-0" ref={paletteRef}>
+            <button
+              type="button"
+              onClick={() => setIsPaletteOpen(!isPaletteOpen)}
+              className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-semibold transition border ${
+                isPaletteOpen
+                  ? "bg-amber-50 text-amber-900 border-amber-300 ring-2 ring-amber-500/10"
+                  : "bg-stone-100 hover:bg-stone-200 text-stone-700 border-stone-200/80"
+              }`}
+              title="Select Color Palette"
             >
-              {COLOR_PALETTES.map((pal, idx) => (
-                <option key={pal.id} value={idx}>
-                  {pal.name}
-                </option>
-              ))}
-            </select>
+              <Palette className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+              <span className="truncate max-w-[80px] sm:max-w-[100px]">{currentPalette.name}</span>
+              <ChevronDown className={`w-3 h-3 text-stone-400 shrink-0 transition-transform ${isPaletteOpen ? "rotate-180" : ""}`} />
+            </button>
+
+            {/* Custom Palette Popup Menu */}
+            {isPaletteOpen && (
+              <div className="absolute bottom-full mb-2 left-0 z-50 bg-white border border-stone-200 rounded-2xl shadow-xl p-1.5 min-w-[200px] sm:min-w-[220px] max-h-60 overflow-y-auto space-y-1 animate-in fade-in zoom-in-95 duration-100">
+                <div className="px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-stone-400">
+                  Color Themes
+                </div>
+                {COLOR_PALETTES.map((pal, idx) => {
+                  const isSelected = idx === activePaletteIndex;
+                  return (
+                    <button
+                      key={pal.id}
+                      type="button"
+                      onClick={() => {
+                        setActivePaletteIndex(idx);
+                        setSelectedColor(pal.colors[0]);
+                        setIsPaletteOpen(false);
+                      }}
+                      className={`w-full flex items-center justify-between p-2 rounded-xl text-left transition ${
+                        isSelected
+                          ? "bg-amber-50/80 text-amber-900 border border-amber-200"
+                          : "hover:bg-stone-50 text-stone-800 border border-transparent"
+                      }`}
+                    >
+                      <div className="flex flex-col min-w-0 mr-2">
+                        <span className="text-xs font-semibold truncate">{pal.name}</span>
+                        <div className="flex items-center gap-1 mt-1">
+                          {pal.colors.slice(0, 5).map((c, i) => (
+                            <span
+                              key={i}
+                              className="w-2.5 h-2.5 rounded-full border border-black/10 shrink-0"
+                              style={{ backgroundColor: c }}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                      {isSelected && <Check className="w-3.5 h-3.5 text-amber-600 shrink-0" />}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
           </div>
 
           {/* Swatches Strip */}
@@ -955,7 +1019,7 @@ export const TactileCanvas = forwardRef<TactileCanvasHandle, TactileCanvasProps>
                   }}
                   className={`relative w-6 h-6 sm:w-8 sm:h-8 rounded-full transition-transform active:scale-90 shadow-sm shrink-0 flex items-center justify-center border-2 ${
                     isSelected
-                      ? "border-stone-900 scale-110 shadow-md ring-2 ring-stone-900/15"
+                      ? "border-amber-500 scale-110 shadow-sm ring-2 ring-amber-500/20"
                       : "border-white hover:scale-105"
                   }`}
                   style={{ backgroundColor: color }}

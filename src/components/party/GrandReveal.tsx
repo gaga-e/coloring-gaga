@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { RoomState, Player } from "@/lib/rooms";
 import { DrawingSheet } from "@/data/drawings";
-import { Download, RotateCcw } from "@/components/ui/icons";
+import { Download, RotateCcw, ArrowLeft } from "@/components/ui/icons";
 import confetti from "@/lib/confetti";
 
 interface GrandRevealProps {
@@ -11,6 +11,7 @@ interface GrandRevealProps {
   sheet: DrawingSheet;
   currentPlayer: Player;
   onResetRoom: () => void;
+  onLeaveRoom?: () => void;
 }
 
 export function GrandReveal({
@@ -18,6 +19,7 @@ export function GrandReveal({
   sheet,
   currentPlayer,
   onResetRoom,
+  onLeaveRoom,
 }: GrandRevealProps) {
   const [localDraft, setLocalDraft] = useState<string>("");
 
@@ -67,16 +69,26 @@ export function GrandReveal({
       }}
     >
       <div className="max-w-5xl mx-auto w-full">
+        {/* Top Navigation */}
+        <div className="flex items-center mb-6">
+          <button
+            onClick={onLeaveRoom}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-stone-200 bg-white hover:bg-stone-50 text-stone-600 hover:text-stone-900 text-xs font-semibold transition active:scale-95 shadow-2xs"
+          >
+            <ArrowLeft className="w-3.5 h-3.5" />
+            <span>Back to Home</span>
+          </button>
+        </div>
         {/* Same Canvas (Together Mode) */}
         {room.mode === "together" ? (
           <div className="max-w-xl mx-auto">
-            <div className="bg-white rounded-3xl p-5 sm:p-7 border border-stone-200 shadow-lg flex flex-col items-center">
+            <div className="bg-white rounded-2xl p-5 sm:p-6 border border-stone-200/90 shadow-sm flex flex-col items-center">
               {/* Clean Canvas Display */}
-              <div className="relative aspect-square w-full rounded-2xl bg-[#FAF8F5] border border-stone-200 overflow-hidden shadow-inner flex items-center justify-center p-2 mb-5">
+              <div className="relative aspect-square w-full rounded-xl bg-[#FAF8F5] border border-stone-200 overflow-hidden flex items-center justify-center p-2 mb-4">
                 <img
                   src={sharedCollaborativeUrl}
                   alt={sheet.title}
-                  className="w-full h-full object-contain rounded-xl"
+                  className="w-full h-full object-contain rounded-lg"
                 />
               </div>
 
@@ -97,9 +109,9 @@ export function GrandReveal({
 
                 <button
                   onClick={() => handleDownload(sharedCollaborativeUrl, "artwork")}
-                  className="flex items-center gap-2 bg-stone-900 hover:bg-black text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow-sm transition active:scale-95 shrink-0"
+                  className="flex items-center gap-1.5 bg-white hover:bg-stone-50 text-stone-700 hover:text-stone-900 border border-stone-200 hover:border-stone-300 text-xs font-semibold px-3.5 py-2 rounded-xl transition active:scale-95 shrink-0"
                 >
-                  <Download className="w-4 h-4" />
+                  <Download className="w-3.5 h-3.5 text-stone-500" />
                   <span>Download</span>
                 </button>
               </div>
@@ -107,7 +119,7 @@ export function GrandReveal({
           </div>
         ) : (
           /* Separate Canvases (Differently Mode) */
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {playersList.map((player) => {
               const artworkUrl =
                 player.canvasDataUrl ||
@@ -117,30 +129,32 @@ export function GrandReveal({
               return (
                 <div
                   key={player.id}
-                  className="bg-white rounded-3xl p-5 border border-stone-200 shadow-sm flex flex-col justify-between"
+                  className="bg-white rounded-2xl p-4 border border-stone-200/90 shadow-sm flex flex-col justify-between"
                 >
                   <div>
                     {/* Player Info Header */}
                     <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center gap-2">
-                        <span className="text-xl">{player.avatar}</span>
-                        <h3 className="font-bold text-sm text-stone-900 truncate">
-                          {player.name}
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span className="text-xl shrink-0">{player.avatar}</span>
+                        <div className="flex items-center gap-1.5 min-w-0">
+                          <h3 className="font-bold text-sm text-stone-900 truncate max-w-[110px] sm:max-w-[140px]" title={player.name}>
+                            {player.name}
+                          </h3>
                           {player.id === currentPlayer.id && (
-                            <span className="ml-1 text-[10px] text-amber-600 font-bold bg-amber-50 px-1.5 py-0.5 rounded-md">
+                            <span className="text-[10px] text-amber-600 font-bold bg-amber-50 px-1.5 py-0.5 rounded-md shrink-0">
                               You
                             </span>
                           )}
-                        </h3>
+                        </div>
                       </div>
                     </div>
 
                     {/* Canvas Display */}
-                    <div className="relative aspect-square w-full rounded-2xl bg-[#FAF8F5] border border-stone-200 overflow-hidden shadow-inner flex items-center justify-center p-2 mb-4">
+                    <div className="relative aspect-square w-full rounded-xl bg-[#FAF8F5] border border-stone-200 overflow-hidden flex items-center justify-center p-2 mb-3">
                       <img
                         src={artworkUrl}
                         alt={`${player.name}'s coloring`}
-                        className="w-full h-full object-contain rounded-xl"
+                        className="w-full h-full object-contain rounded-lg"
                       />
                     </div>
                   </div>
@@ -149,9 +163,9 @@ export function GrandReveal({
                   <div className="pt-2 border-t border-stone-100 flex items-center justify-end">
                     <button
                       onClick={() => handleDownload(artworkUrl, player.name)}
-                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-800 text-xs font-bold transition active:scale-95"
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white hover:bg-stone-50 text-stone-700 hover:text-stone-900 border border-stone-200 hover:border-stone-300 text-xs font-semibold transition active:scale-95"
                     >
-                      <Download className="w-3.5 h-3.5" />
+                      <Download className="w-3.5 h-3.5 text-stone-500" />
                       <span>Download</span>
                     </button>
                   </div>
@@ -166,9 +180,9 @@ export function GrandReveal({
           <div className="mt-8 text-center">
             <button
               onClick={onResetRoom}
-              className="inline-flex items-center gap-2 bg-stone-900 hover:bg-black text-white font-bold text-sm px-6 py-3 rounded-2xl shadow-md transition active:scale-95"
+              className="inline-flex items-center gap-2 bg-amber-500 hover:bg-amber-600 text-white font-semibold text-xs px-5 py-2.5 rounded-xl shadow-sm transition active:scale-95"
             >
-              <RotateCcw className="w-4 h-4" />
+              <RotateCcw className="w-3.5 h-3.5" />
               <span>Play Another Round</span>
             </button>
           </div>

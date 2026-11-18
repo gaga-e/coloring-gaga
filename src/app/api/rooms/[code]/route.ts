@@ -91,6 +91,13 @@ export async function POST(
         player.isReady = !player.isReady;
         break;
       }
+      case "changeSheet": {
+        const { sheetId } = body;
+        if (room.status === "lobby" && sheetId) {
+          room.sheetId = sheetId;
+        }
+        break;
+      }
       case "start": {
         if (!player.isHost) {
           return NextResponse.json({ error: "Only host can start" }, { status: 403 });
